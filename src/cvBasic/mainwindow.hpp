@@ -11,6 +11,8 @@
 #include <opencv2/ml.hpp>
 #include <QFileDialog>
 #include <QVector>
+#include <QLabel>
+#include <QMessageBox>
 // #include <iostream>
 // #include <algorithm>
 // #include <limits>
@@ -46,17 +48,45 @@ private:
 
   enum label : int
   {
-    _1 = 1,
-    _2 = 2,
-    _3 = 3,
-    _4 = 4,
+    _1 = 0,
+    _2 = 1,
+    _3 = 2,
+    _4 = 3,
+    end
   };
+  label currentSelected = label::_1;
+  inline static label nextLabel( label id )
+  {
+    return label( ( (int)id + 1 ) % ( (int)label::end ) );
+  }
+  label noiseLabel = label::end;
+
+  inline bool noiseNotInit()
+  {
+    if ( noiseImg.empty() /*noiseLabel == label::end*/ ) {
+      QMessageBox::information(
+        this, "no noise picture to filte", "you should click noise button first" );
+      return true;
+    }
+    return false;
+  }
+  inline bool srcNotInit()
+  {
+    if ( srcImg.empty() ) {
+      QMessageBox::information( this, "no picture choosed", "you should choose a picture first" );
+      return true;
+    }
+    return false;
+  }
   void showAtLabel( const cv::Mat&, label, QImage::Format = QImage::Format_Indexed8 );
+  QLabel* labelToShow( label id );
 
 public:
   MainWindow( QWidget* parent = nullptr );
   ~MainWindow();
 
+protected:
+  virtual void mousePressEvent( QMouseEvent* /**/ ) override;
 private slots:
   void on_pushButton_clicked();
 

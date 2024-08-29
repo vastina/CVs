@@ -1,6 +1,7 @@
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 
+#include <QMouseEvent>
 #include <opencv2/imgcodecs/legacy/constants_c.h>
 
 using cv::createTrackbar;
@@ -76,6 +77,35 @@ MainWindow::MainWindow( QWidget* parent ) : QMainWindow( parent ), ui( new Ui::M
 MainWindow::~MainWindow()
 {
   delete ui;
+}
+
+QLabel* MainWindow::labelToShow( label id )
+{
+  switch ( id ) {
+    case _1:
+      return ui->label;
+    case _2:
+      return ui->label_1;
+    case _3:
+      return ui->label_2;
+    case _4:
+      return ui->label_3;
+    default:
+      return nullptr;
+  }
+};
+
+void MainWindow::mousePressEvent( QMouseEvent* event )
+{
+  if ( event->button() == Qt::LeftButton ) {
+    for ( label id = label::_1; id < label::end; id = label( (int)id + 1 ) ) {
+      auto* label = labelToShow( id );
+      if ( label->rect().contains( label->mapFromParent( event->pos() ) ) ) {
+        currentSelected = id;
+        break;
+      }
+    }
+  }
 }
 
 string MainWindow::openFile( const char* filterDesc = "Images (*.png *.bmp *.jpg)" )
@@ -395,20 +425,6 @@ static inline void elbp1( Mat& src, Mat& dst )
 
 void MainWindow::showAtLabel( const cv::Mat& Img, label id, QImage::Format format )
 {
-  const auto labelToShow { [this]( label id ) -> QLabel* {
-    switch ( id ) {
-      case _1:
-        return ui->label;
-      case _2:
-        return ui->label_1;
-      case _3:
-        return ui->label_2;
-      case _4:
-        return ui->label_3;
-      default:
-        return nullptr;
-    }
-  } };
   QImage temp;
   temp
     = QImage( (const uchar*)( Img.data ), Img.cols, Img.rows, Img.cols * Img.channels(), format );
@@ -423,27 +439,21 @@ void MainWindow::showAtLabel( const cv::Mat& Img, label id, QImage::Format forma
 
 void MainWindow::on_pushButton_clicked() // 选择文件
 {
-  QString testFileName;
-  //  = QFileDialog::getOpenFileName( this, tr( "" ), "../../../../open_image", "files(*)" );
-  QFileDialog dialog( this );
-  dialog.setWindowTitle( "Open Image" );
-  dialog.setFileMode( QFileDialog::ExistingFile );
-  dialog.setNameFilter( tr( "Images (*.png *.bmp *.jpg)" ) );
-  QStringList filePaths;
-  if ( dialog.exec() ) {
-    filePaths = dialog.selectedFiles();
-    testFileName = filePaths.at( 0 );
-  }
-  srcImg = imread( testFileName.toStdString() );
+  auto file = openFile();
+  if ( file.empty() )
+    return;
+  srcImg = imread( file );
   cvtColor( srcImg, grayImg, CV_BGR2GRAY );
 
   Mat temp;
   cvtColor( srcImg, temp, CV_BGR2RGB ); // BGR convert to RGB
-  showAtLabel( temp, label::_1, QImage::Format_RGB888 );
+  showAtLabel( temp, currentSelected, QImage::Format_RGB888 );
 }
 
 void MainWindow::on_select_files_clicked() // BGR转灰度
 {
+  if ( srcNotInit() )
+    return;
   // Mat gray;
   grayImg.create( srcImg.rows, srcImg.cols, CV_8UC1 );
   QImage Qtemp;
@@ -455,7 +465,7 @@ void MainWindow::on_select_files_clicked() // BGR转灰度
                                   + 0.3 * srcImg.at<Vec3b>( i, j )[2];
     }
 
-  showAtLabel( grayImg, label::_2 );
+  showAtLabel( grayImg, nextLabel( currentSelected ) );
 }
 
 void MainWindow::on_gray_leval_clicked() // 灰度直方图
@@ -463,7 +473,7 @@ void MainWindow::on_gray_leval_clicked() // 灰度直方图
 
   // Mat gray;
 
-  showAtLabel( grayImg, label::_2 );
+  showAtLabel( grayImg, nextLabel( currentSelected ) );
 
   Mat gray_level;
   gray_level = gray_to_level( grayImg );
@@ -477,11 +487,11 @@ void MainWindow::on_gray_leval_clicked() // 灰度直方图
 
 void MainWindow::on_gray_balance_clicked()
 {
+  if ( srcNotInit() )
+    return;
+
   Mat balance;
-  Mat gray2Img;
-  gray2Img.create( srcImg.rows, srcImg.cols, CV_8UC1 );
   balance.create( srcImg.rows, srcImg.cols, CV_8UC1 );
-  QImage Qtemp;
 
   //    for(int i = 0 ; i < srcImg.rows ; i++)
   //        for(int j = 0 ; j < srcImg.cols ; j++){
@@ -515,13 +525,14 @@ void MainWindow::on_gray_balance_clicked()
       balance.at<uchar>( i, j ) = pixel_gray[grayImg.at<uchar>( i, j )];
     }
 
-  gray2Img = balance;
-
-  showAtLabel( gray2Img, label::_4 );
+  showAtLabel( balance, nextLabel( currentSelected ) );
 }
 
 void MainWindow::on_grad_sharpen_clicked()
 {
+  if ( srcNotInit() )
+    return;
+
   Mat grad;
   Mat gray2Img;
   gray2Img.create( srcImg.rows, srcImg.cols, CV_8UC1 );
@@ -538,8 +549,8 @@ void MainWindow::on_grad_sharpen_clicked()
     }
   // imshow("grad",grad);
 
-  showAtLabel( gray2Img, label::_4 );
-  showAtLabel( grad, label::_3 );
+  showAtLabel( gray2Img, nextLabel( currentSelected ) );
+  showAtLabel( grad, nextLabel( nextLabel( currentSelected ) ) );
 }
 
 void MainWindow::on_laplace_sharpen_clicked()
@@ -563,8 +574,8 @@ void MainWindow::on_laplace_sharpen_clicked()
     }
   }
 
-  showAtLabel( gray2Img, label::_4 );
-  showAtLabel( gradimg, label::_3 );
+  showAtLabel( gray2Img, nextLabel( currentSelected ) );
+  showAtLabel( gradimg, nextLabel( currentSelected ) );
 }
 
 void MainWindow::on_roberts_edge_clicked()
@@ -585,8 +596,8 @@ void MainWindow::on_roberts_edge_clicked()
     }
   }
 
-  showAtLabel( gray2Img, label::_4 );
-  showAtLabel( gradimg, label::_3 );
+  showAtLabel( gray2Img, nextLabel( currentSelected ) );
+  showAtLabel( gradimg, nextLabel( nextLabel( currentSelected ) ) );
 }
 
 void MainWindow::on_sobel_edge_clicked()
@@ -617,8 +628,8 @@ void MainWindow::on_sobel_edge_clicked()
     }
   }
 
-  showAtLabel( gray2Img, label::_4 );
-  showAtLabel( gradimg, label::_3 );
+  showAtLabel( gray2Img, nextLabel( currentSelected ) );
+  showAtLabel( gradimg, nextLabel( nextLabel( currentSelected ) ) );
 }
 
 void MainWindow::on_prewitt_clicked()
@@ -649,8 +660,8 @@ void MainWindow::on_prewitt_clicked()
     }
   }
 
-  showAtLabel( gray2Img, label::_4 );
-  showAtLabel( gradimg, label::_3 );
+  showAtLabel( gray2Img, nextLabel( currentSelected ) );
+  showAtLabel( gradimg, nextLabel( nextLabel( currentSelected ) ) );
 }
 
 void MainWindow::on_laplace_edge_clicked()
@@ -674,8 +685,8 @@ void MainWindow::on_laplace_edge_clicked()
     }
   }
 
-  showAtLabel( gray2Img, label::_4 );
-  showAtLabel( gradimg, label::_3 );
+  showAtLabel( gray2Img, nextLabel( currentSelected ) );
+  showAtLabel( gradimg, nextLabel( nextLabel( currentSelected ) ) );
 }
 
 void MainWindow::on_salt_noise_clicked()
@@ -689,7 +700,8 @@ void MainWindow::on_salt_noise_clicked()
 
   noiseImg = temp.clone();
 
-  showAtLabel( temp, label::_3, QImage::Format_RGB888 );
+  noiseLabel = nextLabel( currentSelected );
+  showAtLabel( temp, noiseLabel, QImage::Format_RGB888 );
 }
 
 void MainWindow::on_guass_noise_clicked()
@@ -702,7 +714,8 @@ void MainWindow::on_guass_noise_clicked()
   cvtColor( salt, temp, CV_BGR2RGB ); // BGR convert to RGB
   noiseImg = temp.clone();
 
-  showAtLabel( temp, label::_3, QImage::Format_RGB888 );
+  noiseLabel = nextLabel( currentSelected );
+  showAtLabel( temp, noiseLabel, QImage::Format_RGB888 );
 }
 
 void MainWindow::on_krisch_edge_clicked()
@@ -792,8 +805,8 @@ void MainWindow::on_krisch_edge_clicked()
     }
   }
 
-  showAtLabel( gray2Img, label::_4 );
-  showAtLabel( gradimg, label::_3 );
+  showAtLabel( gray2Img, nextLabel( currentSelected ) );
+  showAtLabel( gradimg, nextLabel( nextLabel( currentSelected ) ) );
 }
 
 void MainWindow::on_Canny_clicked()
@@ -925,12 +938,15 @@ void MainWindow::on_Canny_clicked()
     }
   }
 
-  showAtLabel( max_control, label::_3 );
-  showAtLabel( gray2Img, label::_4 );
+  showAtLabel( max_control, nextLabel( currentSelected ) );
+  showAtLabel( gray2Img, nextLabel( nextLabel( currentSelected ) ) );
 }
 
 void MainWindow::on_average_filter_clicked()
 {
+  if ( noiseNotInit() )
+    return;
+
   Mat filterImg;
   QImage Qtemp;
   QImage Qtemp2;
@@ -950,11 +966,14 @@ void MainWindow::on_average_filter_clicked()
       }
     }
 
-  showAtLabel( filterImg, label::_4, QImage::Format_RGB888 );
+  showAtLabel( filterImg, nextLabel( noiseLabel ), QImage::Format_RGB888 );
 }
 
 void MainWindow::on_middle_filter_clicked()
 {
+  if ( noiseNotInit() )
+    return;
+
   Mat filterImg;
   QImage Qtemp;
   QImage Qtemp2;
@@ -981,11 +1000,14 @@ void MainWindow::on_middle_filter_clicked()
       }
     }
 
-  showAtLabel( filterImg, label::_4, QImage::Format_RGB888 );
+  showAtLabel( filterImg, nextLabel( noiseLabel ), QImage::Format_RGB888 );
 }
 
 void MainWindow::on_window_filter_clicked()
 {
+  if ( noiseNotInit() )
+    return;
+
   Mat filterImg;
   QImage Qtemp;
   QImage Qtemp2;
@@ -1035,11 +1057,14 @@ void MainWindow::on_window_filter_clicked()
       }
     }
 
-  showAtLabel( filterImg, label::_4, QImage::Format_RGB888 );
+  showAtLabel( filterImg, nextLabel( noiseLabel ), QImage::Format_RGB888 );
 }
 
 void MainWindow::on_gauss_filter_clicked()
 {
+  if ( noiseNotInit() )
+    return;
+
   Mat filterImg;
   QImage Qtemp;
   QImage Qtemp2;
@@ -1059,11 +1084,14 @@ void MainWindow::on_gauss_filter_clicked()
       }
     }
 
-  showAtLabel( filterImg, label::_4, QImage::Format_RGB888 );
+  showAtLabel( filterImg, nextLabel( noiseLabel ), QImage::Format_RGB888 );
 }
 
 void MainWindow::on_form_filter_clicked()
 {
+  if ( srcNotInit() )
+    return;
+
   Mat filterImg;
   Mat temp;
   Mat RGB;
@@ -1075,7 +1103,7 @@ void MainWindow::on_form_filter_clicked()
   erode( RGB, temp, element );
   dilate( temp, filterImg, element );
 
-  showAtLabel( filterImg, label::_4, QImage::Format_RGB888 );
+  showAtLabel( filterImg, nextLabel( currentSelected ), QImage::Format_RGB888 );
 }
 
 void MainWindow::on_affine_clicked()
@@ -1104,7 +1132,7 @@ void MainWindow::on_affine_clicked()
 
   warpAffine( RGB, dst, warp_mat, RGB.size() );
 
-  showAtLabel( dst, label::_4, QImage::Format_RGB888 );
+  showAtLabel( dst, nextLabel( currentSelected ), QImage::Format_RGB888 );
 }
 
 void MainWindow::on_perspective_clicked()
@@ -1132,7 +1160,7 @@ void MainWindow::on_perspective_clicked()
   warp_matrix = getPerspectiveTransform( srcQuad, dstQuad );
   warpPerspective( RGB, dst, warp_matrix, RGB.size() );
 
-  showAtLabel( dst, label::_4, QImage::Format_RGB888 );
+  showAtLabel( dst, nextLabel( currentSelected ), QImage::Format_RGB888 );
 }
 
 void MainWindow::on_threshold_seg_clicked()
@@ -1150,7 +1178,7 @@ void MainWindow::on_threshold_seg_clicked()
       }
     }
   }
-  showAtLabel( targetImg, label::_3 );
+  showAtLabel( targetImg, nextLabel( currentSelected ) );
 }
 
 void MainWindow::on_OSTU_clicked()
@@ -1178,7 +1206,7 @@ void MainWindow::on_OSTU_clicked()
       }
     }
   }
-  showAtLabel( targetImg, label::_3 );
+  showAtLabel( targetImg, nextLabel( currentSelected ) );
 }
 
 void MainWindow::on_Kittler_clicked()
@@ -1216,7 +1244,7 @@ void MainWindow::on_Kittler_clicked()
       }
     }
   }
-  showAtLabel( targetImg, label::_3 );
+  showAtLabel( targetImg, nextLabel( currentSelected ) );
 }
 
 void MainWindow::on_frame_diff_clicked()
@@ -1232,7 +1260,10 @@ void MainWindow::on_frame_diff_clicked()
   Mat pframe;
   // pCapture = cv::VideoCapture( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
   //                              "Pro1_open_image/open_image/cat.avi" );
-  pCapture = cv::VideoCapture( cv::String( openFile( "*.avi" ) ) );
+  const auto file = openFile( "*.avi" );
+  if ( file.empty() )
+    return;
+  pCapture = cv::VideoCapture( cv::String( file ) );
   pCapture >> pframe;
 
   Mat pFrImg1;
@@ -1323,7 +1354,10 @@ void MainWindow::on_mix_guass_clicked()
   Mat pframe;
   // pCapture = cv::VideoCapture( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
   //                              "Pro1_open_image/open_image/pets2001.avi" );
-  pCapture = cv::VideoCapture( cv::String( openFile( "*.avi" ) ) );
+  const auto file = openFile( "*.avi" );
+  if ( file.empty() )
+    return;
+  pCapture = cv::VideoCapture( cv::String( file ) );
 
   while ( 1 ) {
     pCapture >> pframe;
@@ -1356,7 +1390,10 @@ void MainWindow::on_circle_lbp_clicked()
 
   // Mat Img = imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
   //                   "Pro1_open_image/open_image/lena.jpg" );
-  Mat Img = imread( openFile() );
+  auto file = openFile();
+  if ( file.empty() )
+    return;
+  Mat Img = imread( file );
 
   Mat temp;
   cvtColor( Img, temp, CV_BGR2RGB ); // BGR convert to RGB
@@ -1373,7 +1410,10 @@ void MainWindow::on_circle_lbp_clicked()
   // Mat img = imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
   //                   "Pro1_open_image/open_image/lena.jpg",
   //                   0 );
-  Mat img = imread( openFile() );
+  file = openFile();
+  if ( file.empty() )
+    return;
+  Mat img = imread( file );
   // namedWindow("image");
   // imshow("image", img);
 
@@ -1406,10 +1446,16 @@ void MainWindow::on_target_det_clicked()
 
   // Mat temp0 = imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
   //                     "Pro1_open_image/open_image/lena.jpg" );
-  Mat temp0 = imread( openFile() );
+  auto file = openFile();
+  if ( file.empty() )
+    return;
+  Mat temp0 = imread( file );
   // Mat temp1 = imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
   //                     "Pro1_open_image/open_image/lena-1.jpg" );
-  Mat temp1 = imread( openFile() );
+  file = openFile();
+  if ( file.empty() )
+    return;
+  Mat temp1 = imread( file );
   Mat Img0;
   Mat Img1;
   Mat Img2;
@@ -1480,12 +1526,18 @@ void MainWindow::on_model_check_clicked()
   Point minLoc;
   Point maxLoc;
 
-  Mat Img0 = imread(
-    openFile() ); /*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
-       "Pro1_open_image/open_image/lena.jpg" );*/
-  Mat Img1 = imread(
-    openFile() ); /*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
-       "Pro1_open_image/open_image/lena-1.jpg" );*/
+  auto file = openFile();
+  if ( file.empty() )
+    return;
+  Mat Img0
+    = imread( file ); /*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
+                 "Pro1_open_image/open_image/lena.jpg" );*/
+  file = openFile();
+  if ( file.empty() )
+    return;
+  Mat Img1
+    = imread( file ); /*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
+                 "Pro1_open_image/open_image/lena-1.jpg" );*/
 
   Mat result;
 
@@ -1511,7 +1563,10 @@ void MainWindow::on_cloaking_clicked()
   // TODO: 在此添加控件通知处理程序代码
   // Create a VideoCapture object and open the input file
   cv::VideoCapture cap;
-  cap.open( openFile( "*.mp4" ) );
+  const auto file = openFile( "*.mp4" );
+  if ( file.empty() )
+    return;
+  cap.open( file );
   // cap.open( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/Pro1_open_image/"
   //           "open_image/input-color.mp4" );
 
@@ -1601,14 +1656,20 @@ void MainWindow::on_cloaking_clicked()
 
 void MainWindow::on_SIFT_clicked()
 {
-  Mat src1 = imread(
-    openFile(), 1 ); /*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
-       "Pro1_open_image/open_image/1.1.jpg",
-       1 );*/
-  Mat src2 = imread(
-    openFile(), 1 ); /*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
-       "Pro1_open_image/open_image/1.2.jpg",
-       1 );*/
+  auto file = openFile();
+  if ( file.empty() )
+    return;
+  Mat src1
+    = imread( file, 1 ); /*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
+                 "Pro1_open_image/open_image/1.1.jpg",
+                 1 );*/
+  file = openFile();
+  if ( file.empty() )
+    return;
+  Mat src2
+    = imread( file, 1 ); /*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
+                 "Pro1_open_image/open_image/1.2.jpg",
+                 1 );*/
   imshow( "src1", src1 );
   imshow( "src2", src2 );
 
@@ -1684,9 +1745,15 @@ void MainWindow::on_SIFT_clicked()
 
 void MainWindow::on_orb_clicked()
 {
-  Mat obj = imread(openFile());/*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
+  auto file = openFile();
+  if ( file.empty() )
+    return;
+  Mat obj = imread(file);/*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
                     "Pro1_open_image/open_image/1.1.jpg" );*/ // 载入目标图像
-  Mat scene = imread(openFile());/*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
+  file = openFile();
+  if ( file.empty() )
+    return;
+  Mat scene = imread(file);/*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
                       "Pro1_open_image/open_image/1.2.jpg" );*/ // 载入场景图像
   if ( obj.empty() || scene.empty() ) {
     // cout << "Can't open the picture!\n";
@@ -1914,9 +1981,12 @@ static inline void callBack( int /**/, void* /**/ )
 
 void MainWindow::on_color_fit_clicked()
 {
-  img_color = imread(
-    openFile() ); /*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
-       "Pro1_open_image/open_image/color.jpg" );*/
+  auto file = openFile();
+  if ( file.empty() )
+    return;
+  img_color
+    = imread( file ); /*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
+                 "Pro1_open_image/open_image/color.jpg" );*/
   if ( !img_color.data || img_color.channels() != 3 )
     return;
   namedWindow( windowName, CV_WINDOW_AUTOSIZE );
@@ -2041,11 +2111,11 @@ void MainWindow::on_svm_test_clicked()
 
 void MainWindow::on_word_test_clicked()
 {
-  std::cout << "sample/SVM_HOG.xml can not be loaded\n";
-  return;
-
+  auto file = openFile( "*.xml" );
+  if ( file.empty() )
+    return;
   Ptr<cv::ml::SVM> svm1
-    = cv::ml::SVM::load( openFile("*.xml")/*"/Users/qitianyu/Master/Semester1/Image_processing/"
+    = cv::ml::SVM::load( file/*"/Users/qitianyu/Master/Semester1/Image_processing/"
                          "ProjectFiles/Pro1_open_image/open_image/sample/SVM_HOG.xml"*/ );
 
   if ( svm1->empty() ) {
@@ -2054,9 +2124,12 @@ void MainWindow::on_word_test_clicked()
   }
 
   Mat testimg;
-  testimg = imread(
-    openFile() ); /*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
-       "Pro1_open_image/open_image/sample/9/0.png" );*/
+  file = openFile();
+  if ( file.empty() )
+    return;
+  testimg
+    = imread( file ); /*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
+                 "Pro1_open_image/open_image/sample/9/0.png" );*/
   cv::resize( testimg, testimg, Size( 28, 28 ), 1 );
   imshow( "src", testimg );
   // waitKey(0);
@@ -2097,9 +2170,12 @@ static inline double compute_sum_of_rect( Mat src, Rect r )
 void MainWindow::on_Haar_1_clicked()
 {
   Mat src_img;
-  src_img = imread(
-    openFile() ); /*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
-       "Pro1_open_image/open_image/lena.jpg" );*/
+  auto file = openFile();
+  if ( file.empty() )
+    return;
+  src_img
+    = imread( file ); /*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
+                 "Pro1_open_image/open_image/lena.jpg" );*/
   if ( src_img.empty() ) {
     cout << "error.could not find" << std::endl;
     return;
@@ -2144,9 +2220,12 @@ void MainWindow::on_Haar_1_clicked()
 void MainWindow::on_Haar_2_clicked()
 {
   Mat src_img;
-  src_img = imread(
-    openFile() ); /*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
-       "Pro1_open_image/open_image/lena.jpg" );*/
+  auto file = openFile();
+  if ( file.empty() )
+    return;
+  src_img
+    = imread( file ); /*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
+                 "Pro1_open_image/open_image/lena.jpg" );*/
   if ( src_img.empty() ) {
     cout << "error.could not find" << std::endl;
     return;
@@ -2190,9 +2269,12 @@ void MainWindow::on_Haar_2_clicked()
 
 void MainWindow::on_gaber_clicked()
 {
+  auto file = openFile();
+  if ( file.empty() )
+    return;
   Mat src = imread( /*"/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
                     "Pro1_open_image/open_image/lena.jpg"*/
-                    openFile(),
+                    file,
                     cv::IMREAD_GRAYSCALE );
   namedWindow( "input", CV_WINDOW_AUTOSIZE );
   imshow( "input", src );
@@ -2270,7 +2352,10 @@ void MainWindow::on_face_haar_clicked()
 {
   cv::String label = "Face";
   cv::CascadeClassifier faceCascade;
-  faceCascade.load( openFile("*.xml")
+  auto file = openFile( "*.xml" );
+  if ( file.empty() )
+    return;
+  faceCascade.load( file
     /*"/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/Pro1_open_image/open_image/"
     "face-haar/haarcascade_frontalface_alt2.xml"*/ ); // 加载分类器
   cv::VideoCapture capture;
@@ -2381,9 +2466,9 @@ static inline void outputCameraParam( void )
        << cameraMatrixR << "cameraDistcoeffR" << distCoeffR;
     fs.release();
     // cout << "cameraMatrixL=:" << cameraMatrixL << std::endl
-        //  << "cameraDistcoeffL=:" << distCoeffL << std::endl
-        //  << "cameraMatrixR=:" << cameraMatrixR << std::endl
-        //  << "cameraDistcoeffR=:" << distCoeffR << std::endl;
+    //  << "cameraDistcoeffL=:" << distCoeffL << std::endl
+    //  << "cameraMatrixR=:" << cameraMatrixR << std::endl
+    //  << "cameraDistcoeffR=:" << distCoeffR << std::endl;
   } else {
     // cout << "Error: can not save the intrinsics!!!!" << std::endl;
   }
@@ -2392,12 +2477,12 @@ static inline void outputCameraParam( void )
   if ( fs.isOpened() ) {
     fs << "R" << R << "T" << T << "Rl" << Rl << "Rr" << Rr << "Pl" << Pl << "Pr" << Pr << "Q" << Q;
     // cout << "R=" << R << std::endl
-        //  << "T=" << T << std::endl
-        //  << "Rl=" << Rl << std::endl
-        //  << "Rr" << Rr << std::endl
-        //  << "Pl" << Pl << std::endl
-        //  << "Pr" << Pr << std::endl
-        //  << "Q" << Q << std::endl;
+    //  << "T=" << T << std::endl
+    //  << "Rl=" << Rl << std::endl
+    //  << "Rr" << Rr << std::endl
+    //  << "Pl" << Pl << std::endl
+    //  << "Pr" << Pr << std::endl
+    //  << "Q" << Q << std::endl;
     fs.release();
   } else {
     // cout << "Error: can not save the extrinsic parameters\n";
@@ -2462,6 +2547,8 @@ void MainWindow::on_camera2_clicked()
   while ( goodFrameCount <= frameNumber ) {
     // char filename[120];
     string filename = openFile();
+    if ( filename.empty() )
+      return;
     // = "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/Pro1_open_image/"
     //   "open_image/camer_cab/left"
     //   + std::to_string( goodFrameCount ) + ".jpg";
@@ -2471,6 +2558,8 @@ void MainWindow::on_camera2_clicked()
     cvtColor( rgbImageL, grayImageL, CV_BGR2GRAY );
     /*读取右边的图像*/
     filename = openFile();
+    if ( filename.empty() )
+      return;
     // = "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/Pro1_open_image/"
     //          "open_image/camer_cab/right"
     //          + std::to_string( goodFrameCount ) + ".jpg";
@@ -2736,14 +2825,20 @@ void MainWindow::on_camera2_2_clicked()
   initUndistortRectifyMap( cameraMatrixL, distCoeffL, Rl, Pr, imageSize, CV_32FC1, mapLx, mapLy );
   initUndistortRectifyMap( cameraMatrixR, distCoeffR, Rr, Pr, imageSize, CV_32FC1, mapRx, mapRy );
 
+  auto file = openFile();
+  if ( file.empty() )
+    return;
   rgbImageL = imread( /*"/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
                       "Pro1_open_image/open_image/camer_cab/left01.jpg"*/
-                      openFile(),
+                      file,
                       CV_LOAD_IMAGE_COLOR );
   cvtColor( rgbImageL, grayImageL, CV_BGR2GRAY );
+  file = openFile();
+  if ( file.empty() )
+    return;
   rgbImageR = imread( /*"/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
                       "Pro1_open_image/open_image/camer_cab/right01.jpg"*/
-                      openFile(),
+                      file,
                       CV_LOAD_IMAGE_COLOR );
   cvtColor( rgbImageR, grayImageR, CV_BGR2GRAY );
 
