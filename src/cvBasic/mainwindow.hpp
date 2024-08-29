@@ -44,6 +44,15 @@ private:
   cv::Mat srcImg, grayImg, noiseImg;
   std::string openFile( const char* filterDesc );
 
+  enum label : int
+  {
+    _1 = 1,
+    _2 = 2,
+    _3 = 3,
+    _4 = 4,
+  };
+  void showAtLabel( const cv::Mat&, label, QImage::Format = QImage::Format_Indexed8 );
+
 public:
   MainWindow( QWidget* parent = nullptr );
   ~MainWindow();

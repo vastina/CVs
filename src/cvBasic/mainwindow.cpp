@@ -229,7 +229,7 @@ void DoubleThreshold( Mat& imageIput, double lowThreshold, double highThreshold 
 // canny双阈值连接
 void DoubleThresholdLink( Mat& imageInput, double lowThreshold, double highThreshold )
 {
-    // may stack overflow
+  // may stack overflow
   for ( int i = 1; i < imageInput.rows - 1; i++ ) {
     for ( int j = 1; j < imageInput.cols - 1; j++ ) {
       if ( imageInput.at<uchar>( i, j ) > lowThreshold && imageInput.at<uchar>( i, j ) < 255 ) {
@@ -376,6 +376,34 @@ void elbp1( Mat& src, Mat& dst )
   }
 }
 
+void MainWindow::showAtLabel( const cv::Mat& Img, label id, QImage::Format format )
+{
+  const auto labelToShow { [this]( label id ) -> QLabel* {
+    switch ( id ) {
+      case _1:
+        return ui->label;
+      case _2:
+        return ui->label_1;
+      case _3:
+        return ui->label_2;
+      case _4:
+        return ui->label_3;
+      default:
+        return nullptr;
+    }
+  } };
+  QImage temp;
+  temp
+    = QImage( (const uchar*)( Img.data ), Img.cols, Img.rows, Img.cols * Img.channels(), format );
+  auto* label = labelToShow( id );
+  label->setPixmap( QPixmap::fromImage( temp ) );
+  temp = temp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
+
+  label->setScaledContents( true );
+  label->resize( temp.size() );
+  label->show();
+}
+
 void MainWindow::on_pushButton_clicked() // 选择文件
 {
   QString testFileName;
@@ -393,16 +421,8 @@ void MainWindow::on_pushButton_clicked() // 选择文件
   cvtColor( srcImg, grayImg, CV_BGR2GRAY );
 
   Mat temp;
-  QImage Qtemp;
   cvtColor( srcImg, temp, CV_BGR2RGB ); // BGR convert to RGB
-  Qtemp = QImage(
-    (const unsigned char*)( temp.data ), temp.cols, temp.rows, temp.step, QImage::Format_RGB888 );
-
-  ui->label->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label->setScaledContents( true );
-  ui->label->resize( Qtemp.size() );
-  ui->label->show();
+  showAtLabel( temp, label::_1, QImage::Format_RGB888 );
 }
 
 void MainWindow::on_select_files_clicked() // BGR转灰度
@@ -418,16 +438,7 @@ void MainWindow::on_select_files_clicked() // BGR转灰度
                                   + 0.3 * srcImg.at<Vec3b>( i, j )[2];
     }
 
-  Qtemp = QImage( (const uchar*)( grayImg.data ),
-                  grayImg.cols,
-                  grayImg.rows,
-                  grayImg.cols * grayImg.channels(),
-                  QImage::Format_Indexed8 );
-  ui->label_1->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_1->setScaledContents( true );
-  ui->label_1->resize( Qtemp.size() );
-  ui->label_1->show();
+  showAtLabel( grayImg, label::_2 );
 }
 
 void MainWindow::on_gray_leval_clicked() // 灰度直方图
@@ -435,18 +446,7 @@ void MainWindow::on_gray_leval_clicked() // 灰度直方图
 
   // Mat gray;
 
-  QImage Qtemp;
-
-  Qtemp = QImage( (const uchar*)( grayImg.data ),
-                  grayImg.cols,
-                  grayImg.rows,
-                  grayImg.cols * grayImg.channels(),
-                  QImage::Format_Indexed8 );
-  ui->label_1->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_1->setScaledContents( true );
-  ui->label_1->resize( Qtemp.size() );
-  ui->label_1->show();
+  showAtLabel( grayImg, label::_2 );
 
   Mat gray_level;
   gray_level = gray_to_level( grayImg );
@@ -454,9 +454,8 @@ void MainWindow::on_gray_leval_clicked() // 灰度直方图
   imshow( "gray_level", gray_level );
   waitKey( 0 );
   cv::destroyAllWindows();
-  // if user close the window directly(use 'X'), cv::destroyWindow will cause a crash, use cv::destroyAllWindows instead
-  // cv::destroyWindow( "gray_level" );
-  // waitKey( 1 );
+  // if user close the window directly(use 'X'), cv::destroyWindow will cause a crash, use
+  // cv::destroyAllWindows instead cv::destroyWindow( "gray_level" ); waitKey( 1 );
 }
 
 void MainWindow::on_gray_balance_clicked()
@@ -501,16 +500,7 @@ void MainWindow::on_gray_balance_clicked()
 
   gray2Img = balance;
 
-  Qtemp = QImage( (const uchar*)( gray2Img.data ),
-                  gray2Img.cols,
-                  gray2Img.rows,
-                  gray2Img.cols * gray2Img.channels(),
-                  QImage::Format_Indexed8 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp.size() );
-  ui->label_3->show();
+  showAtLabel( gray2Img, label::_4 );
 }
 
 void MainWindow::on_grad_sharpen_clicked()
@@ -531,27 +521,8 @@ void MainWindow::on_grad_sharpen_clicked()
     }
   // imshow("grad",grad);
 
-  Qtemp = QImage( (const uchar*)( gray2Img.data ),
-                  gray2Img.cols,
-                  gray2Img.rows,
-                  gray2Img.cols * gray2Img.channels(),
-                  QImage::Format_Indexed8 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp.size() );
-  ui->label_3->show();
-
-  Qtemp2 = QImage( (const uchar*)( grad.data ),
-                   grad.cols,
-                   grad.rows,
-                   grad.cols * grad.channels(),
-                   QImage::Format_Indexed8 );
-  ui->label_2->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_2->setScaledContents( true );
-  ui->label_2->resize( Qtemp2.size() );
-  ui->label_2->show();
+  showAtLabel( gray2Img, label::_4 );
+  showAtLabel( grad, label::_3 );
 }
 
 void MainWindow::on_laplace_sharpen_clicked()
@@ -574,27 +545,9 @@ void MainWindow::on_laplace_sharpen_clicked()
                                 - grayImg.at<uchar>( i, j - 1 ) );
     }
   }
-  Qtemp = QImage( (const uchar*)( gray2Img.data ),
-                  gray2Img.cols,
-                  gray2Img.rows,
-                  gray2Img.cols * gray2Img.channels(),
-                  QImage::Format_Indexed8 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp.size() );
-  ui->label_3->show();
 
-  Qtemp2 = QImage( (const uchar*)( gradimg.data ),
-                   gradimg.cols,
-                   gradimg.rows,
-                   gradimg.cols * gradimg.channels(),
-                   QImage::Format_Indexed8 );
-  ui->label_2->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_2->setScaledContents( true );
-  ui->label_2->resize( Qtemp2.size() );
-  ui->label_2->show();
+  showAtLabel( gray2Img, label::_4 );
+  showAtLabel( gradimg, label::_3 );
 }
 
 void MainWindow::on_roberts_edge_clicked()
@@ -614,27 +567,9 @@ void MainWindow::on_roberts_edge_clicked()
         = saturate_cast<uchar>( grayImg.at<uchar>( i, j ) - gradimg.at<uchar>( i, j ) );
     }
   }
-  Qtemp = QImage( (const uchar*)( gray2Img.data ),
-                  gray2Img.cols,
-                  gray2Img.rows,
-                  gray2Img.cols * gray2Img.channels(),
-                  QImage::Format_Indexed8 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp.size() );
-  ui->label_3->show();
 
-  Qtemp2 = QImage( (const uchar*)( gradimg.data ),
-                   gradimg.cols,
-                   gradimg.rows,
-                   gradimg.cols * gradimg.channels(),
-                   QImage::Format_Indexed8 );
-  ui->label_2->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_2->setScaledContents( true );
-  ui->label_2->resize( Qtemp2.size() );
-  ui->label_2->show();
+  showAtLabel( gray2Img, label::_4 );
+  showAtLabel( gradimg, label::_3 );
 }
 
 void MainWindow::on_sobel_edge_clicked()
@@ -664,27 +599,9 @@ void MainWindow::on_sobel_edge_clicked()
         = saturate_cast<uchar>( grayImg.at<uchar>( i, j ) - gradimg.at<uchar>( i, j ) );
     }
   }
-  Qtemp = QImage( (const uchar*)( gray2Img.data ),
-                  gray2Img.cols,
-                  gray2Img.rows,
-                  gray2Img.cols * gray2Img.channels(),
-                  QImage::Format_Indexed8 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp.size() );
-  ui->label_3->show();
 
-  Qtemp2 = QImage( (const uchar*)( gradimg.data ),
-                   gradimg.cols,
-                   gradimg.rows,
-                   gradimg.cols * gradimg.channels(),
-                   QImage::Format_Indexed8 );
-  ui->label_2->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_2->setScaledContents( true );
-  ui->label_2->resize( Qtemp2.size() );
-  ui->label_2->show();
+  showAtLabel( gray2Img, label::_4 );
+  showAtLabel( gradimg, label::_3 );
 }
 
 void MainWindow::on_prewitt_clicked()
@@ -714,27 +631,9 @@ void MainWindow::on_prewitt_clicked()
         = saturate_cast<uchar>( grayImg.at<uchar>( i, j ) - gradimg.at<uchar>( i, j ) );
     }
   }
-  Qtemp = QImage( (const uchar*)( gray2Img.data ),
-                  gray2Img.cols,
-                  gray2Img.rows,
-                  gray2Img.cols * gray2Img.channels(),
-                  QImage::Format_Indexed8 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp.size() );
-  ui->label_3->show();
 
-  Qtemp2 = QImage( (const uchar*)( gradimg.data ),
-                   gradimg.cols,
-                   gradimg.rows,
-                   gradimg.cols * gradimg.channels(),
-                   QImage::Format_Indexed8 );
-  ui->label_2->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_2->setScaledContents( true );
-  ui->label_2->resize( Qtemp2.size() );
-  ui->label_2->show();
+  showAtLabel( gray2Img, label::_4 );
+  showAtLabel( gradimg, label::_3 );
 }
 
 void MainWindow::on_laplace_edge_clicked()
@@ -757,27 +656,9 @@ void MainWindow::on_laplace_edge_clicked()
                                 - grayImg.at<uchar>( i, j - 1 ) );
     }
   }
-  Qtemp = QImage( (const uchar*)( gray2Img.data ),
-                  gray2Img.cols,
-                  gray2Img.rows,
-                  gray2Img.cols * gray2Img.channels(),
-                  QImage::Format_Indexed8 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp.size() );
-  ui->label_3->show();
 
-  Qtemp2 = QImage( (const uchar*)( gradimg.data ),
-                   gradimg.cols,
-                   gradimg.rows,
-                   gradimg.cols * gradimg.channels(),
-                   QImage::Format_Indexed8 );
-  ui->label_2->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_2->setScaledContents( true );
-  ui->label_2->resize( Qtemp2.size() );
-  ui->label_2->show();
+  showAtLabel( gray2Img, label::_4 );
+  showAtLabel( gradimg, label::_3 );
 }
 
 void MainWindow::on_salt_noise_clicked()
@@ -791,13 +672,7 @@ void MainWindow::on_salt_noise_clicked()
 
   noiseImg = temp.clone();
 
-  Qtemp2 = QImage(
-    (const unsigned char*)( temp.data ), temp.cols, temp.rows, temp.step, QImage::Format_RGB888 );
-  ui->label_2->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_2->setScaledContents( true );
-  ui->label_2->resize( Qtemp2.size() );
-  ui->label_2->show();
+  showAtLabel( temp, label::_3, QImage::Format_RGB888 );
 }
 
 void MainWindow::on_guass_noise_clicked()
@@ -810,13 +685,7 @@ void MainWindow::on_guass_noise_clicked()
   cvtColor( salt, temp, CV_BGR2RGB ); // BGR convert to RGB
   noiseImg = temp.clone();
 
-  Qtemp2 = QImage(
-    (const unsigned char*)( temp.data ), temp.cols, temp.rows, temp.step, QImage::Format_RGB888 );
-  ui->label_2->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_2->setScaledContents( true );
-  ui->label_2->resize( Qtemp2.size() );
-  ui->label_2->show();
+  showAtLabel( temp, label::_3, QImage::Format_RGB888 );
 }
 
 void MainWindow::on_krisch_edge_clicked()
@@ -905,27 +774,9 @@ void MainWindow::on_krisch_edge_clicked()
         = saturate_cast<uchar>( grayImg.at<uchar>( i, j ) - gradimg.at<uchar>( i, j ) );
     }
   }
-  Qtemp = QImage( (const uchar*)( gray2Img.data ),
-                  gray2Img.cols,
-                  gray2Img.rows,
-                  gray2Img.cols * gray2Img.channels(),
-                  QImage::Format_Indexed8 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp.size() );
-  ui->label_3->show();
 
-  Qtemp2 = QImage( (const uchar*)( gradimg.data ),
-                   gradimg.cols,
-                   gradimg.rows,
-                   gradimg.cols * gradimg.channels(),
-                   QImage::Format_Indexed8 );
-  ui->label_2->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_2->setScaledContents( true );
-  ui->label_2->resize( Qtemp2.size() );
-  ui->label_2->show();
+  showAtLabel( gray2Img, label::_4 );
+  showAtLabel( gradimg, label::_3 );
 }
 
 void MainWindow::on_Canny_clicked()
@@ -947,7 +798,8 @@ void MainWindow::on_Canny_clicked()
   // 高斯处理
   for ( int i = 0; i < grayImg.rows - 1; i++ ) {
     for ( int j = 0; j < grayImg.cols - 1; j++ ) {
-      if( i == 0 || j == 0 ) continue;
+      if ( i == 0 || j == 0 )
+        continue;
       gauss.at<uchar>( i, j ) = saturate_cast<uchar>( fabs(
         ( 0.751136 * grayImg.at<uchar>( i - 1, j - 1 ) + 0.123841 * grayImg.at<uchar>( i - 1, j )
           + 0.0751136 * grayImg.at<uchar>( i - 1, j + 1 ) + 0.123841 * grayImg.at<uchar>( i, j - 1 )
@@ -1057,27 +909,8 @@ void MainWindow::on_Canny_clicked()
     }
   }
 
-  Qtemp2 = QImage( (const uchar*)( max_control.data ),
-                   max_control.cols,
-                   max_control.rows,
-                   max_control.cols * max_control.channels(),
-                   QImage::Format_Indexed8 );
-  ui->label_2->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_2->setScaledContents( true );
-  ui->label_2->resize( Qtemp2.size() );
-  ui->label_2->show();
-
-  Qtemp = QImage( (const uchar*)( gray2Img.data ),
-                  gray2Img.cols,
-                  gray2Img.rows,
-                  gray2Img.cols * gray2Img.channels(),
-                  QImage::Format_Indexed8 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp.size() );
-  ui->label_3->show();
+  showAtLabel( max_control, label::_3 );
+  showAtLabel( gray2Img, label::_4 );
 }
 
 void MainWindow::on_average_filter_clicked()
@@ -1101,16 +934,7 @@ void MainWindow::on_average_filter_clicked()
       }
     }
 
-  Qtemp2 = QImage( (const unsigned char*)( filterImg.data ),
-                   filterImg.cols,
-                   filterImg.rows,
-                   filterImg.step,
-                   QImage::Format_RGB888 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp2.size() );
-  ui->label_3->show();
+  showAtLabel( filterImg, label::_4, QImage::Format_RGB888 );
 }
 
 void MainWindow::on_middle_filter_clicked()
@@ -1141,16 +965,7 @@ void MainWindow::on_middle_filter_clicked()
       }
     }
 
-  Qtemp2 = QImage( (const unsigned char*)( filterImg.data ),
-                   filterImg.cols,
-                   filterImg.rows,
-                   filterImg.step,
-                   QImage::Format_RGB888 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp2.size() );
-  ui->label_3->show();
+  showAtLabel( filterImg, label::_4, QImage::Format_RGB888 );
 }
 
 void MainWindow::on_window_filter_clicked()
@@ -1204,16 +1019,7 @@ void MainWindow::on_window_filter_clicked()
       }
     }
 
-  Qtemp2 = QImage( (const unsigned char*)( filterImg.data ),
-                   filterImg.cols,
-                   filterImg.rows,
-                   filterImg.step,
-                   QImage::Format_RGB888 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp2.size() );
-  ui->label_3->show();
+  showAtLabel( filterImg, label::_4, QImage::Format_RGB888 );
 }
 
 void MainWindow::on_gauss_filter_clicked()
@@ -1237,16 +1043,7 @@ void MainWindow::on_gauss_filter_clicked()
       }
     }
 
-  Qtemp2 = QImage( (const unsigned char*)( filterImg.data ),
-                   filterImg.cols,
-                   filterImg.rows,
-                   filterImg.step,
-                   QImage::Format_RGB888 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp2.size() );
-  ui->label_3->show();
+  showAtLabel( filterImg, label::_4, QImage::Format_RGB888 );
 }
 
 void MainWindow::on_form_filter_clicked()
@@ -1262,16 +1059,7 @@ void MainWindow::on_form_filter_clicked()
   erode( RGB, temp, element );
   dilate( temp, filterImg, element );
 
-  Qtemp2 = QImage( (const unsigned char*)( filterImg.data ),
-                   filterImg.cols,
-                   filterImg.rows,
-                   filterImg.step,
-                   QImage::Format_RGB888 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp2.size() );
-  ui->label_3->show();
+  showAtLabel( filterImg, label::_4, QImage::Format_RGB888 );
 }
 
 void MainWindow::on_affine_clicked()
@@ -1300,13 +1088,7 @@ void MainWindow::on_affine_clicked()
 
   warpAffine( RGB, dst, warp_mat, RGB.size() );
 
-  Qtemp2 = QImage(
-    (const unsigned char*)( dst.data ), dst.cols, dst.rows, dst.step, QImage::Format_RGB888 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp2.size() );
-  ui->label_3->show();
+  showAtLabel( dst, label::_4, QImage::Format_RGB888 );
 }
 
 void MainWindow::on_perspective_clicked()
@@ -1334,13 +1116,7 @@ void MainWindow::on_perspective_clicked()
   warp_matrix = getPerspectiveTransform( srcQuad, dstQuad );
   warpPerspective( RGB, dst, warp_matrix, RGB.size() );
 
-  Qtemp2 = QImage(
-    (const unsigned char*)( dst.data ), dst.cols, dst.rows, dst.step, QImage::Format_RGB888 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp2.size() );
-  ui->label_3->show();
+  showAtLabel( dst, label::_4, QImage::Format_RGB888 );
 }
 
 void MainWindow::on_threshold_seg_clicked()
@@ -1358,16 +1134,7 @@ void MainWindow::on_threshold_seg_clicked()
       }
     }
   }
-  Qtemp = QImage( (const uchar*)( targetImg.data ),
-                  targetImg.cols,
-                  targetImg.rows,
-                  targetImg.cols * targetImg.channels(),
-                  QImage::Format_Indexed8 );
-  ui->label_2->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_2->setScaledContents( true );
-  ui->label_2->resize( Qtemp.size() );
-  ui->label_2->show();
+  showAtLabel( targetImg, label::_3 );
 }
 
 void MainWindow::on_OSTU_clicked()
@@ -1395,16 +1162,7 @@ void MainWindow::on_OSTU_clicked()
       }
     }
   }
-  Qtemp = QImage( (const uchar*)( targetImg.data ),
-                  targetImg.cols,
-                  targetImg.rows,
-                  targetImg.cols * targetImg.channels(),
-                  QImage::Format_Indexed8 );
-  ui->label_2->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_2->setScaledContents( true );
-  ui->label_2->resize( Qtemp.size() );
-  ui->label_2->show();
+  showAtLabel( targetImg, label::_3 );
 }
 
 void MainWindow::on_Kittler_clicked()
@@ -1442,16 +1200,7 @@ void MainWindow::on_Kittler_clicked()
       }
     }
   }
-  Qtemp = QImage( (const uchar*)( targetImg.data ),
-                  targetImg.cols,
-                  targetImg.rows,
-                  targetImg.cols * targetImg.channels(),
-                  QImage::Format_Indexed8 );
-  ui->label_2->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_2->setScaledContents( true );
-  ui->label_2->resize( Qtemp.size() );
-  ui->label_2->show();
+  showAtLabel( targetImg, label::_3 );
 }
 
 void MainWindow::on_frame_diff_clicked()
@@ -1595,14 +1344,15 @@ void MainWindow::on_circle_lbp_clicked()
 
   Mat temp;
   cvtColor( Img, temp, CV_BGR2RGB ); // BGR convert to RGB
-  Qtemp = QImage(
-    (const unsigned char*)( temp.data ), temp.cols, temp.rows, temp.step, QImage::Format_RGB888 );
-
-  ui->label->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label->setScaledContents( true );
-  ui->label->resize( Qtemp.size() );
-  ui->label->show();
+  // Qtemp = QImage(
+  //   (const unsigned char*)( temp.data ), temp.cols, temp.rows, temp.step, QImage::Format_RGB888
+  //   );
+  // ui->label->setPixmap( QPixmap::fromImage( Qtemp ) );
+  // Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
+  // ui->label->setScaledContents( true );
+  // ui->label->resize( Qtemp.size() );
+  // ui->label->show();
+  showAtLabel( temp, label::_1, QImage::Format_RGB888 );
 
   // Mat img = imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
   //                   "Pro1_open_image/open_image/lena.jpg",
@@ -1611,16 +1361,7 @@ void MainWindow::on_circle_lbp_clicked()
   // namedWindow("image");
   // imshow("image", img);
 
-  Qtemp = QImage( (const uchar*)( img.data ),
-                  img.cols,
-                  img.rows,
-                  img.cols * img.channels(),
-                  QImage::Format_Indexed8 );
-  ui->label_1->setPixmap( QPixmap::fromImage( Qtemp ) );
-  Qtemp = Qtemp.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_1->setScaledContents( true );
-  ui->label_1->resize( Qtemp.size() );
-  ui->label_1->show();
+  showAtLabel( img, label::_2 );
 
   int radius;
   // int neighbors;
@@ -1633,31 +1374,13 @@ void MainWindow::on_circle_lbp_clicked()
   elbp1( img, dst );
   // namedWindow("normal");
   // imshow("normal", dst);
-  Qtemp1 = QImage( (const uchar*)( dst.data ),
-                   dst.cols,
-                   dst.rows,
-                   dst.cols * dst.channels(),
-                   QImage::Format_Indexed8 );
-  ui->label_2->setPixmap( QPixmap::fromImage( Qtemp1 ) );
-  Qtemp1 = Qtemp1.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_2->setScaledContents( true );
-  ui->label_2->resize( Qtemp1.size() );
-  ui->label_2->show();
+  showAtLabel( dst, label::_3 );
 
   Mat dst1 = Mat( img.rows - 2 * radius, img.cols - 2 * radius, CV_8UC1, cv::Scalar( 0 ) );
   elbp( img, dst1, 1, 8 );
   // namedWindow("circle");
   // imshow("circle", dst1);
-  Qtemp2 = QImage( (const uchar*)( dst1.data ),
-                   dst1.cols,
-                   dst1.rows,
-                   dst1.cols * dst1.channels(),
-                   QImage::Format_Indexed8 );
-  ui->label_3->setPixmap( QPixmap::fromImage( Qtemp2 ) );
-  Qtemp2 = Qtemp2.scaled( 250, 250, Qt::KeepAspectRatio, Qt::SmoothTransformation );
-  ui->label_3->setScaledContents( true );
-  ui->label_3->resize( Qtemp2.size() );
-  ui->label_3->show();
+  showAtLabel( dst, label::_4 );
 }
 
 void MainWindow::on_target_det_clicked()
@@ -1761,10 +1484,10 @@ void MainWindow::on_model_check_clicked()
   imshow( "0", result );
   waitKey( 0 );
   cv::destroyAllWindows();
-  //cv::destroyWindow( "src" );
-  //cv::destroyWindow( "template" );
-  //cv::destroyWindow( "0" );
-  //waitKey( 1 );
+  // cv::destroyWindow( "src" );
+  // cv::destroyWindow( "template" );
+  // cv::destroyWindow( "0" );
+  // waitKey( 1 );
 }
 
 void MainWindow::on_cloaking_clicked()
@@ -2108,15 +1831,15 @@ void MainWindow::on_orb_clicked()
 
   waitKey( 0 );
   cv::destroyAllWindows();
-  //cv::destroyWindow( "match_img" );
-  //cv::destroyWindow( "match_img2" );
-  //cv::destroyWindow( "obj" );
-  //cv::destroyWindow( "result" );
-  //cv::destroyWindow( "dst" );
-  //cv::destroyWindow( "src" );
-  //cv::destroyWindow( "scense" );
-  //cv::destroyWindow( "rotimage" );
-  //waitKey( 1 );
+  // cv::destroyWindow( "match_img" );
+  // cv::destroyWindow( "match_img2" );
+  // cv::destroyWindow( "obj" );
+  // cv::destroyWindow( "result" );
+  // cv::destroyWindow( "dst" );
+  // cv::destroyWindow( "src" );
+  // cv::destroyWindow( "scense" );
+  // cv::destroyWindow( "rotimage" );
+  // waitKey( 1 );
 }
 
 // 输入图像
