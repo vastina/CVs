@@ -16,4 +16,5 @@
 *.ilk
 *.ini
 
+/*.xml
 /*.json

@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.8)
 
 project(CV)
 
+# set(CMAKE_BUILD_TYPE Debug)
+
 if(WIN32)
   # Enable Hot Reload for MSVC compilers if supported. conflict with address
   # sanitizer if ( POLICY CMP0141 ) cmake_policy( SET CMP0141 NEW )
@@ -27,7 +29,11 @@ cmake_policy(SET CMP0074 NEW) # for xxx_root
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # set(OpenCV_ROOT "${env}/o/opencv/4.10.0/d6c6c480e6414e34a4d6e6711fba5e82")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+set(OpenCV_ROOT "${env}/o/opencv/4.10.0/localBuild-debug")
+else() # need to delete cache
 set(OpenCV_ROOT "${env}/o/opencv/4.10.0/localBuild")
+endif()
 # set(OpenCV_DIR "${OpenCV_ROOT}/x64/vc17/staticlib") # OpenCVConfig.cmake dir
 find_package(OpenCV REQUIRED)
 set(Qt6_ROOT "D:/Qt/6.7.2/msvc2019_64")
