@@ -229,6 +229,7 @@ void DoubleThreshold( Mat& imageIput, double lowThreshold, double highThreshold 
 // canny双阈值连接
 void DoubleThresholdLink( Mat& imageInput, double lowThreshold, double highThreshold )
 {
+    // may stack overflow
   for ( int i = 1; i < imageInput.rows - 1; i++ ) {
     for ( int j = 1; j < imageInput.cols - 1; j++ ) {
       if ( imageInput.at<uchar>( i, j ) > lowThreshold && imageInput.at<uchar>( i, j ) < 255 ) {
@@ -252,7 +253,7 @@ void DoubleThresholdLink( Mat& imageInput, double lowThreshold, double highThres
 int OSTU( QVector<int> hist )
 {
   float u0;
-  float u1;
+  float u1 = 0.f;
   float w0;
   float w1;
   int count0;
@@ -452,6 +453,8 @@ void MainWindow::on_gray_leval_clicked() // 灰度直方图
 
   imshow( "gray_level", gray_level );
   waitKey( 0 );
+  cv::destroyAllWindows();
+  // if user close the window directly(use 'X'), cv::destroyWindow will cause a crash, use cv::destroyAllWindows instead
   // cv::destroyWindow( "gray_level" );
   // waitKey( 1 );
 }
@@ -944,6 +947,7 @@ void MainWindow::on_Canny_clicked()
   // 高斯处理
   for ( int i = 0; i < grayImg.rows - 1; i++ ) {
     for ( int j = 0; j < grayImg.cols - 1; j++ ) {
+      if( i == 0 || j == 0 ) continue;
       gauss.at<uchar>( i, j ) = saturate_cast<uchar>( fabs(
         ( 0.751136 * grayImg.at<uchar>( i - 1, j - 1 ) + 0.123841 * grayImg.at<uchar>( i - 1, j )
           + 0.0751136 * grayImg.at<uchar>( i - 1, j + 1 ) + 0.123841 * grayImg.at<uchar>( i, j - 1 )
@@ -988,8 +992,8 @@ void MainWindow::on_Canny_clicked()
   //    cout<<"m"<< m <<"    "<< "s" << s << std::endl;
   max_control = gradimg.clone();
   k = 0;
-  for ( int i = 1; i < gradimg.rows - 1; i++ ) {
-    for ( int j = 1; j < gradimg.cols - 1; j++ ) {
+  for ( int i = 1; i < gradimg.rows - 2; i++ ) {
+    for ( int j = 1; j < gradimg.cols - 2; j++ ) {
       int value00 = gradimg.at<uchar>( ( i - 1 ), j - 1 );
       int value01 = gradimg.at<uchar>( ( i - 1 ), j );
       int value02 = gradimg.at<uchar>( ( i - 1 ), j + 1 );
@@ -1722,9 +1726,10 @@ void MainWindow::on_target_det_clicked()
   imshow( "Img1", Img1 );
 
   waitKey( 0 );
-  cv::destroyWindow( "check" );
-  cv::destroyWindow( "Img1" );
-  waitKey( 1 );
+  cv::destroyAllWindows();
+  // cv::destroyWindow( "check" );
+  // cv::destroyWindow( "Img1" );
+  // waitKey( 1 );
 }
 
 void MainWindow::on_model_check_clicked()
@@ -1755,10 +1760,11 @@ void MainWindow::on_model_check_clicked()
   imshow( "template", Img1 );
   imshow( "0", result );
   waitKey( 0 );
-  cv::destroyWindow( "src" );
-  cv::destroyWindow( "template" );
-  cv::destroyWindow( "0" );
-  waitKey( 1 );
+  cv::destroyAllWindows();
+  //cv::destroyWindow( "src" );
+  //cv::destroyWindow( "template" );
+  //cv::destroyWindow( "0" );
+  //waitKey( 1 );
 }
 
 void MainWindow::on_cloaking_clicked()
@@ -1928,12 +1934,13 @@ void MainWindow::on_SIFT_clicked()
   //_cprintf("number of matched points: %d\n",matches.size());
   imshow( "matches", img_match );
   waitKey( 0 );
-  cv::destroyWindow( "matches" );
-  cv::destroyWindow( "descriptor1" );
-  cv::destroyWindow( "descriptor2" );
-  cv::destroyWindow( "src1" );
-  cv::destroyWindow( "src2" );
-  waitKey( 1 );
+  cv::destroyAllWindows();
+  // cv::destroyWindow( "matches" );
+  // cv::destroyWindow( "descriptor1" );
+  // cv::destroyWindow( "descriptor2" );
+  // cv::destroyWindow( "src1" );
+  // cv::destroyWindow( "src2" );
+  // waitKey( 1 );
 }
 
 void MainWindow::on_orb_clicked()
@@ -2100,15 +2107,16 @@ void MainWindow::on_orb_clicked()
   imshow( "src", obj );
 
   waitKey( 0 );
-  cv::destroyWindow( "match_img" );
-  cv::destroyWindow( "match_img2" );
-  cv::destroyWindow( "obj" );
-  cv::destroyWindow( "result" );
-  cv::destroyWindow( "dst" );
-  cv::destroyWindow( "src" );
-  cv::destroyWindow( "scense" );
-  cv::destroyWindow( "rotimage" );
-  waitKey( 1 );
+  cv::destroyAllWindows();
+  //cv::destroyWindow( "match_img" );
+  //cv::destroyWindow( "match_img2" );
+  //cv::destroyWindow( "obj" );
+  //cv::destroyWindow( "result" );
+  //cv::destroyWindow( "dst" );
+  //cv::destroyWindow( "src" );
+  //cv::destroyWindow( "scense" );
+  //cv::destroyWindow( "rotimage" );
+  //waitKey( 1 );
 }
 
 // 输入图像
@@ -2191,9 +2199,10 @@ void MainWindow::on_color_fit_clicked()
   createTrackbar( "vmax", dstName, &hsv_vmax, hsv_vmax_Max, callBack );
   callBack( 0, 0 );
   waitKey( 0 );
-  cv::destroyWindow( dstName );
-  cv::destroyWindow( windowName );
-  waitKey( 1 );
+  cv::destroyAllWindows();
+  // cv::destroyWindow( dstName );
+  // cv::destroyWindow( windowName );
+  // waitKey( 1 );
 }
 
 void MainWindow::on_svm_test_clicked()
@@ -2286,12 +2295,16 @@ void MainWindow::on_svm_test_clicked()
 
   imshow( "circle", matImg ); // show it to the user
   waitKey( 0 );
-  cv::destroyWindow( "circle" );
-  waitKey( 1 );
+  cv::destroyAllWindows();
+  // cv::destroyWindow( "circle" );
+  // waitKey( 1 );
 }
 
 void MainWindow::on_word_test_clicked()
 {
+  std::cout << "sample/SVM_HOG.xml can not be loaded\n";
+  return;
+
   Ptr<cv::ml::SVM> svm1
     = cv::ml::SVM::load( openFile("*.xml")/*"/Users/qitianyu/Master/Semester1/Image_processing/"
                          "ProjectFiles/Pro1_open_image/open_image/sample/SVM_HOG.xml"*/ );
@@ -2322,8 +2335,9 @@ void MainWindow::on_word_test_clicked()
   cout << "ret= " << ret << std::endl;
 
   waitKey( 0 );
-  cv::destroyWindow( "src" );
-  waitKey( 1 );
+  cv::destroyAllWindows();
+  // cv::destroyWindow( "src" );
+  // waitKey( 1 );
 }
 
 double compute_sum_of_rect( Mat src, Rect r )
@@ -2334,6 +2348,7 @@ double compute_sum_of_rect( Mat src, Rect r )
   int height = r.height;
   double sum;
   // 这里使用Mat::at函数需要注意第一参数为行数对应的y和高度height，第二个参数对应才是列数对应的x和宽度width
+  // may crash
   sum = src.at<double>( y, x ) + src.at<double>( y + height, x + width )
         - src.at<double>( y + height, x ) - src.at<double>( y, x + width );
 
@@ -2380,10 +2395,11 @@ void MainWindow::on_Haar_1_clicked()
   imshow( "dst", dst_8 );
 
   waitKey( 0 );
-  cv::destroyWindow( "src_img" );
-  cv::destroyWindow( "gray_img" );
-  cv::destroyWindow( "dst" );
-  waitKey( 1 );
+  cv::destroyAllWindows();
+  // cv::destroyWindow( "src_img" );
+  // cv::destroyWindow( "gray_img" );
+  // cv::destroyWindow( "dst" );
+  // waitKey( 1 );
 }
 
 void MainWindow::on_Haar_2_clicked()
@@ -2426,10 +2442,11 @@ void MainWindow::on_Haar_2_clicked()
   imshow( "dst", dst_8 );
 
   waitKey( 0 );
-  cv::destroyWindow( "src_img" );
-  cv::destroyWindow( "gray_img" );
-  cv::destroyWindow( "dst" );
-  waitKey( 1 );
+  cv::destroyAllWindows();
+  // cv::destroyWindow( "src_img" );
+  // cv::destroyWindow( "gray_img" );
+  // cv::destroyWindow( "dst" );
+  // waitKey( 1 );
 }
 
 void MainWindow::on_gaber_clicked()
@@ -2499,14 +2516,15 @@ void MainWindow::on_gaber_clicked()
   imshow( "binary", binary );
   // imwrite("F://program//image//result_01.png", binary);
   waitKey( 0 );
-  cv::destroyWindow( "input" );
-  cv::destroyWindow( "gabor1" );
-  cv::destroyWindow( "gabor2" );
-  cv::destroyWindow( "gabor3" );
-  cv::destroyWindow( "gabor4" );
-  cv::destroyWindow( "result" );
-  cv::destroyWindow( "binary" );
-  waitKey( 1 );
+  cv::destroyAllWindows();
+  // cv::destroyWindow( "input" );
+  // cv::destroyWindow( "gabor1" );
+  // cv::destroyWindow( "gabor2" );
+  // cv::destroyWindow( "gabor3" );
+  // cv::destroyWindow( "gabor4" );
+  // cv::destroyWindow( "result" );
+  // cv::destroyWindow( "binary" );
+  // waitKey( 1 );
 }
 
 void MainWindow::on_face_haar_clicked()
