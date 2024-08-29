@@ -226,8 +226,26 @@ static inline void DoubleThreshold( Mat& imageIput, double lowThreshold, double 
 }
 
 // canny双阈值连接
-static inline void DoubleThresholdLink( Mat& imageInput, double lowThreshold, double highThreshold )
+static inline bool DoubleThresholdLink( Mat& imageInput, double lowThreshold, double highThreshold )
 {
+  const std::array<std::array<int, 2>, 8> nears {
+    { { -1, -1 }, { -1, 0 }, { -1, 1 }, { 0, -1 }, { 0, 1 }, { 1, -1 }, { 1, 0 }, { 1, 1 } } };
+  for ( int i = 1; i < imageInput.rows - 1; i++ ) {
+    for ( int j = 1; j < imageInput.cols - 1; j++ ) {
+      if ( imageInput.at<uchar>( i, j ) > lowThreshold && imageInput.at<uchar>( i, j ) < 255 ) {
+        for ( auto [x, y] : nears )
+          if ( imageInput.at<uchar>( i + x, j + y ) == 255 )
+            imageInput.at<uchar>( i, j ) = 255;
+        if ( imageInput.at<uchar>( i, j ) != 255 )
+          imageInput.at<uchar>( i, j ) = 0;
+      }
+    }
+  }
+  for ( int i = 1; i < imageInput.rows - 1; i++ )
+    for ( int j = 1; j < imageInput.cols - 1; j++ )
+      if ( imageInput.at<uchar>( i, j ) > lowThreshold && imageInput.at<uchar>( i, j ) < 255 )
+        return true;
+  return false;
   // may stack overflow
   for ( int i = 1; i < imageInput.rows - 1; i++ ) {
     for ( int j = 1; j < imageInput.cols - 1; j++ ) {
@@ -795,10 +813,8 @@ void MainWindow::on_Canny_clicked()
   f_y.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   QVector<double> direction( ( grayImg.rows - 1 ) * ( grayImg.rows - 1 ), 0 );
   // 高斯处理
-  for ( int i = 0; i < grayImg.rows - 1; i++ ) {
-    for ( int j = 0; j < grayImg.cols - 1; j++ ) {
-      if ( i == 0 || j == 0 )
-        continue;
+  for ( int i = 1; i < grayImg.rows - 1; i++ ) {
+    for ( int j = 1; j < grayImg.cols - 1; j++ ) {
       gauss.at<uchar>( i, j ) = saturate_cast<uchar>( fabs(
         ( 0.751136 * grayImg.at<uchar>( i - 1, j - 1 ) + 0.123841 * grayImg.at<uchar>( i - 1, j )
           + 0.0751136 * grayImg.at<uchar>( i - 1, j + 1 ) + 0.123841 * grayImg.at<uchar>( i, j - 1 )
@@ -899,7 +915,8 @@ void MainWindow::on_Canny_clicked()
     }
   }
   DoubleThreshold( max_control, 10, 40 );
-  DoubleThresholdLink( max_control, 10, 40 );
+  while ( DoubleThresholdLink( max_control, 10, 40 ) )
+    ;
 
   for ( int i = 0; i < grayImg.rows - 1; i++ ) {
     for ( int j = 0; j < grayImg.cols - 1; j++ ) {
