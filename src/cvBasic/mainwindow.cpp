@@ -92,7 +92,7 @@ string MainWindow::openFile( const char* filterDesc = "Images (*.png *.bmp *.jpg
   return {};
 }
 
-Mat gray_to_level( Mat gray ) // 灰度直方图函数
+static inline Mat gray_to_level( Mat gray ) // 灰度直方图函数
 {
   QVector<int> pixel( 256, 0 );
 
@@ -126,18 +126,17 @@ Mat gray_to_level( Mat gray ) // 灰度直方图函数
   return gray_level;
 }
 
-QVector<int> gray2vector( Mat gray )
-{
-  QVector<int> pixel( 256, 0 );
+// static inline QVector<int> gray2vector( Mat gray )
+// {  //unused
+//   QVector<int> pixel( 256, 0 );
+//   for ( int i = 0; i < gray.rows; i++ )
+//     for ( int j = 0; j < gray.cols; j++ ) {
+//       pixel[gray.at<uchar>( i, j )]++;
+//     }
+//   return pixel;
+// }
 
-  for ( int i = 0; i < gray.rows; i++ )
-    for ( int j = 0; j < gray.cols; j++ ) {
-      pixel[gray.at<uchar>( i, j )]++;
-    }
-  return pixel;
-}
-
-Mat addSaltNoise( const Mat& srcImage, int n )
+static inline Mat addSaltNoise( const Mat& srcImage, int n )
 {
   Mat dstImage = srcImage.clone();
   for ( int k = 0; k < n; k++ ) {
@@ -169,7 +168,7 @@ Mat addSaltNoise( const Mat& srcImage, int n )
   return dstImage;
 }
 
-double generateGaussianNoise( double mu, double sigma )
+static inline double generateGaussianNoise( double mu, double sigma )
 {
   // 定义小值
   const double epsilon = std::numeric_limits<double>::min();
@@ -194,7 +193,7 @@ double generateGaussianNoise( double mu, double sigma )
 }
 
 // 为图像添加高斯噪声
-Mat addGaussianNoise( Mat& srcImag )
+static inline Mat addGaussianNoise( Mat& srcImag )
 {
   Mat dstImage = srcImag.clone();
   for ( int i = 0; i < dstImage.rows; i++ ) {
@@ -212,7 +211,7 @@ Mat addGaussianNoise( Mat& srcImag )
 }
 
 // canny双阈值处理
-void DoubleThreshold( Mat& imageIput, double lowThreshold, double highThreshold )
+static inline void DoubleThreshold( Mat& imageIput, double lowThreshold, double highThreshold )
 {
   for ( int i = 0; i < imageIput.rows; i++ ) {
     for ( int j = 0; j < imageIput.cols; j++ ) {
@@ -227,7 +226,7 @@ void DoubleThreshold( Mat& imageIput, double lowThreshold, double highThreshold 
 }
 
 // canny双阈值连接
-void DoubleThresholdLink( Mat& imageInput, double lowThreshold, double highThreshold )
+static inline void DoubleThresholdLink( Mat& imageInput, double lowThreshold, double highThreshold )
 {
   // may stack overflow
   for ( int i = 1; i < imageInput.rows - 1; i++ ) {
@@ -250,7 +249,7 @@ void DoubleThresholdLink( Mat& imageInput, double lowThreshold, double highThres
   }
 }
 
-int OSTU( QVector<int> hist )
+static inline int OSTU( QVector<int> hist )
 {
   float u0;
   float u1 = 0.f;
@@ -291,7 +290,7 @@ int OSTU( QVector<int> hist )
   return maxT;
 }
 
-void elbp( Mat& src, Mat& dst, int radius, int neighbors )
+static inline void elbp( Mat& src, Mat& dst, int radius, int neighbors )
 {
 
   for ( int n = 0; n < neighbors; n++ ) {
@@ -330,7 +329,7 @@ void elbp( Mat& src, Mat& dst, int radius, int neighbors )
   }
 }
 
-void elbp1( Mat& src, Mat& dst )
+static inline void elbp1( Mat& src, Mat& dst )
 {
   // 循环处理图像数据
   for ( int i = 1; i < src.rows - 1; i++ ) {
@@ -838,10 +837,10 @@ void MainWindow::on_Canny_clicked()
   //    meanStdDev(gradimg,Mat_mean,Mat_vari);
   //    m = Mat_mean.at<double>(0,0);
   //    s = Mat_vari.at<double>(0,0);
-  //    cout<<"m"<< m <<"    "<< "s" << s << std::endl;
+  //    // cout<<"m"<< m <<"    "<< "s" << s << std::endl;
   //    m = m+s;
   //    s = 0.4*m;
-  //    cout<<"m"<< m <<"    "<< "s" << s << std::endl;
+  //    // cout<<"m"<< m <<"    "<< "s" << s << std::endl;
   max_control = gradimg.clone();
   k = 0;
   for ( int i = 1; i < gradimg.rows - 2; i++ ) {
@@ -1147,7 +1146,7 @@ void MainWindow::on_OSTU_clicked()
     }
   int T;
   T = OSTU( hist );
-  cout << "OSTU:" << T << std::endl;
+  // cout << "OSTU:" << T << std::endl;
 
   QImage Qtemp;
   Mat targetImg;
@@ -1189,7 +1188,7 @@ void MainWindow::on_Kittler_clicked()
     }
   }
   KT = sumGrayGrads / sumGrads;
-  cout << "OSTU:" << KT << std::endl;
+  // cout << "OSTU:" << KT << std::endl;
 
   for ( int i = 0; i < grayImg.rows; i++ ) {
     for ( int j = 0; j < grayImg.cols; j++ ) {
@@ -1314,14 +1313,14 @@ void MainWindow::on_mix_guass_clicked()
     if ( pframe.data == NULL )
       return;
     cvtColor( pframe, greyimg, CV_BGR2GRAY );
-    long long t = cv::getTickCount();
+    // long long t = cv::getTickCount();
     ptrKNN->apply( pframe, foreground, 0.01 );
-    long long t1 = cv::getTickCount();
+    // long long t1 = cv::getTickCount();
     mog2->apply( greyimg, foreground2, -1 );
-    long long t2 = cv::getTickCount();
+    // long long t2 = cv::getTickCount();
     //_cprintf("t1 = %f t2 = %f\n", (t1 - t) / getTickFrequency(), (t2 - t1) / getTickFrequency());
-    cout << "t1 = " << ( t1 - t ) / cv::getTickFrequency()
-         << "t2 = " << ( t2 - t1 ) / cv::getTickFrequency() << '\n';
+    // cout << "t1 = " << ( t1 - t ) / cv::getTickFrequency()
+    //      << "t2 = " << ( t2 - t1 ) / cv::getTickFrequency() << '\n';
     imshow( "Extracted Foreground", foreground );
     imshow( "Extracted Foreground2", foreground2 );
     imshow( "video", pframe );
@@ -1432,7 +1431,7 @@ void MainWindow::on_target_det_clicked()
 
       double src_src = compareHist( hist_src0, hist_src1, CV_COMP_CORREL );
 
-      cout << "src compare with src correlation value : " << src_src << '\n';
+      // cout << "src compare with src correlation value : " << src_src << '\n';
 
       if ( src_src > max ) {
         max = src_src;
@@ -1441,7 +1440,7 @@ void MainWindow::on_target_det_clicked()
       }
     }
   }
-  cout << "************************************" << '\n';
+  // cout << "************************************" << '\n';
 
   Rect rect( x_ray, y_ray, Img1.rows, Img1.cols );
   rectangle( Img0, rect, Scalar( 255, 0, 0 ), 1, cv::LINE_8, 0 );
@@ -1501,7 +1500,7 @@ void MainWindow::on_cloaking_clicked()
 
   // Check if camera opened successfully
   if ( !cap.isOpened() ) {
-    cout << "Error opening video stream or file" << std::endl;
+    // cout << "Error opening video stream or file" << std::endl;
     return;
   }
 
@@ -1517,7 +1516,7 @@ void MainWindow::on_cloaking_clicked()
     cap >> background1;
   }
   while ( 1 ) {
-    long t = cv::getTickCount();
+    // long t = cv::getTickCount();
 
     Mat frame;
     // Capture frame-by-frame
@@ -1568,9 +1567,9 @@ void MainWindow::on_cloaking_clicked()
     frame.release(), hsv.release(), mask1.release(), mask2.release(), res1.release(),
       res2.release(), final_output.release();
 
-    long t1 = cv::getTickCount();
+    // long t1 = cv::getTickCount();
 
-    cout << "t1 =  " << ( t1 - t ) / cv::getTickFrequency() * 1000 << "ms\n" << std::endl;
+    // // cout << "t1 =  " << ( t1 - t ) / cv::getTickFrequency() * 1000 << "ms\n" << std::endl;
 
     if ( waitKey( 1 ) != -1 )
       break;
@@ -1673,7 +1672,7 @@ void MainWindow::on_orb_clicked()
   Mat scene = imread(openFile());/*imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
                       "Pro1_open_image/open_image/1.2.jpg" );*/ // 载入场景图像
   if ( obj.empty() || scene.empty() ) {
-    cout << "Can't open the picture!\n";
+    // cout << "Can't open the picture!\n";
     return;
   }
   vector<cv::KeyPoint> obj_keypoints;
@@ -1870,7 +1869,7 @@ string dstName = "dst";
 // 输出图像
 Mat dst_color;
 // 回调函数
-void callBack( int /**/, void* /**/ )
+static inline void callBack( int /**/, void* /**/ )
 {
   // 输出图像分配内存
   dst_color = Mat::zeros( img_color.size(), CV_32FC3 );
@@ -2054,8 +2053,8 @@ void MainWindow::on_word_test_clicked()
   for ( int i = 0; i < imgdescriptor.size(); i++ ) {
     sampleMat.at<float>( 0, i ) = imgdescriptor[i]; // 第num个样本的特征向量中的第i个元素
   }
-  int ret = svm1->predict( sampleMat );
-  cout << "ret= " << ret << std::endl;
+  // int ret = svm1->predict( sampleMat );
+  // cout << "ret= " << ret << std::endl;
 
   waitKey( 0 );
   cv::destroyAllWindows();
@@ -2063,7 +2062,7 @@ void MainWindow::on_word_test_clicked()
   // waitKey( 1 );
 }
 
-double compute_sum_of_rect( Mat src, Rect r )
+static inline double compute_sum_of_rect( Mat src, Rect r )
 {
   int x = r.x;
   int y = r.y;
@@ -2303,11 +2302,11 @@ void MainWindow::on_face_haar_clicked()
   cv::destroyWindow( "CamerFace" );
 }
 
-void calRealPoint( vector<vector<cv::Point3f>>& obj,
-                   int boardWidth,
-                   int boardHeight,
-                   int imgNumber,
-                   int squareSize )
+static inline void calRealPoint( vector<vector<cv::Point3f>>& obj,
+                                 int boardWidth,
+                                 int boardHeight,
+                                 int imgNumber,
+                                 int squareSize )
 {
   vector<cv::Point3f> imgpoint;
   for ( int rowIndex = 0; rowIndex < boardHeight; rowIndex++ ) {
@@ -2355,7 +2354,7 @@ Mat distCoeffR = ( Mat_<double>( 5, 1 ) << -0.266294943795012,
                    -0.001243865371699451,
                    0.2973605735168139 );
 
-void outputCameraParam( void )
+static inline void outputCameraParam( void )
 {
   /*保存数据*/
   /*输出数据*/
@@ -2364,27 +2363,27 @@ void outputCameraParam( void )
     fs << "cameraMatrixL" << cameraMatrixL << "cameraDistcoeffL" << distCoeffL << "cameraMatrixR"
        << cameraMatrixR << "cameraDistcoeffR" << distCoeffR;
     fs.release();
-    cout << "cameraMatrixL=:" << cameraMatrixL << std::endl
-         << "cameraDistcoeffL=:" << distCoeffL << std::endl
-         << "cameraMatrixR=:" << cameraMatrixR << std::endl
-         << "cameraDistcoeffR=:" << distCoeffR << std::endl;
+    // cout << "cameraMatrixL=:" << cameraMatrixL << std::endl
+        //  << "cameraDistcoeffL=:" << distCoeffL << std::endl
+        //  << "cameraMatrixR=:" << cameraMatrixR << std::endl
+        //  << "cameraDistcoeffR=:" << distCoeffR << std::endl;
   } else {
-    cout << "Error: can not save the intrinsics!!!!" << std::endl;
+    // cout << "Error: can not save the intrinsics!!!!" << std::endl;
   }
 
   fs.open( "extrinsics.yml", cv::FileStorage::WRITE );
   if ( fs.isOpened() ) {
     fs << "R" << R << "T" << T << "Rl" << Rl << "Rr" << Rr << "Pl" << Pl << "Pr" << Pr << "Q" << Q;
-    cout << "R=" << R << std::endl
-         << "T=" << T << std::endl
-         << "Rl=" << Rl << std::endl
-         << "Rr" << Rr << std::endl
-         << "Pl" << Pl << std::endl
-         << "Pr" << Pr << std::endl
-         << "Q" << Q << std::endl;
+    // cout << "R=" << R << std::endl
+        //  << "T=" << T << std::endl
+        //  << "Rl=" << Rl << std::endl
+        //  << "Rr" << Rr << std::endl
+        //  << "Pl" << Pl << std::endl
+        //  << "Pr" << Pr << std::endl
+        //  << "Q" << Q << std::endl;
     fs.release();
   } else {
-    cout << "Error: can not save the extrinsic parameters\n";
+    // cout << "Error: can not save the extrinsic parameters\n";
   }
 }
 
@@ -2440,31 +2439,24 @@ void MainWindow::on_camera2_clicked()
   Mat img;
   int goodFrameCount = 1;
 
-  std::cout << "todo: remove hard coding\n";
-  return;
+  // std::// cout << "todo: remove hard coding\n";
+  // return;
 
   while ( goodFrameCount <= frameNumber ) {
     // char filename[120];
-    string filename
-      = "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/Pro1_open_image/"
-        "open_image/camer_cab/left"
-        + std::to_string( goodFrameCount ) + ".jpg";
+    string filename = openFile();
+    // = "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/Pro1_open_image/"
+    //   "open_image/camer_cab/left"
+    //   + std::to_string( goodFrameCount ) + ".jpg";
     /*读取左边的图像*/
-    // sprintf( filename,
-    //          "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/Pro1_open_image/"
-    //          "open_image/camer_cab/left%02d.jpg",
-    //          goodFrameCount );
     rgbImageL = imread( filename, 1 );
     imshow( "chessboardL", rgbImageL );
     cvtColor( rgbImageL, grayImageL, CV_BGR2GRAY );
     /*读取右边的图像*/
-    filename = "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/Pro1_open_image/"
-               "open_image/camer_cab/right"
-               + std::to_string( goodFrameCount ) + ".jpg";
-    // sprintf( filename,
-    //          "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/Pro1_open_image/"
-    //          "open_image/camer_cab/right%02d.jpg",
-    //          goodFrameCount );
+    filename = openFile();
+    // = "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/Pro1_open_image/"
+    //          "open_image/camer_cab/right"
+    //          + std::to_string( goodFrameCount ) + ".jpg";
     rgbImageR = imread( filename, 1 );
     cvtColor( rgbImageR, grayImageR, CV_BGR2GRAY );
 
@@ -2610,7 +2602,7 @@ void MainWindow::on_camera2_clicked()
   waitKey( 1 );
 }
 
-int getDisparityImage( Mat& disparity, Mat& disparityImage, bool isColor )
+static inline int getDisparityImage( Mat& disparity, Mat& disparityImage, bool isColor )
 {
   Mat disp8u;
   disp8u = disparity;
@@ -2672,7 +2664,7 @@ Mat R_new = ( Mat_<double>( 3, 3 ) << 9.9998505024526163e-01,
               9.9996632377767658e-01 ); // R 旋转矩阵
 
 /*****立体匹配*****/
-void stereo_match( int /**/, void* /**/ )
+static inline void stereo_match( int /**/, void* /**/ )
 {
   bm->setBlockSize( 2 * blockSize + 5 ); // SAD窗口大小，5~21之间为宜
   bm->setROI1( validROIL );
@@ -2783,7 +2775,7 @@ void MainWindow::on_camera2_2_clicked()
               cvRound( validROIL.width * sf ),
               cvRound( validROIL.height * sf ) );
   // rectangle(canvasPart, vroiL, Scalar(0, 0, 255), 3, 8);                      //画上一个矩形
-  cout << "Painted ImageL" << std::endl;
+  // cout << "Painted ImageL" << std::endl;
 
   // 右图像画到画布上
   canvasPart = canvas( Rect( w, 0, w, h ) ); // 获得画布的另一部分
@@ -2793,7 +2785,7 @@ void MainWindow::on_camera2_2_clicked()
               cvRound( validROIR.width * sf ),
               cvRound( validROIR.height * sf ) );
   // rectangle(canvasPart, vroiR, Scalar(0, 0, 255), 3, 8);
-  cout << "Painted ImageR" << std::endl;
+  // cout << "Painted ImageR" << std::endl;
 
   // 画上对应的线条
   for ( int i = 0; i < canvas.rows; i += 16 )

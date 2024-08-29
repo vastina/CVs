@@ -138,7 +138,7 @@ private slots:
 
   void on_face_haar_clicked();
 
-  static void on_camera2_clicked();
+  void on_camera2_clicked();
 
   void on_camera2_2_clicked();
 };
