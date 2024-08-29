@@ -1,0 +1,1 @@
+use uic to generate header file from .ui file
