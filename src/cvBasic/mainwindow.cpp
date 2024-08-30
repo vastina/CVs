@@ -824,7 +824,7 @@ void MainWindow::on_Canny_clicked()
   gray2Img.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   f_x.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   f_y.create( grayImg.rows, grayImg.cols, CV_8UC1 );
-  QVector<double> direction( ( grayImg.rows - 1 ) * ( grayImg.rows - 1 ), 0 );
+  QVector<double> direction( ( grayImg.rows - 1 ) * ( grayImg.cols - 1 ), 0 );
   // 高斯处理
   for ( int i = 1; i < grayImg.rows - 1; i++ ) {
     for ( int j = 1; j < grayImg.cols - 1; j++ ) {
