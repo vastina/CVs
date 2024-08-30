@@ -456,7 +456,6 @@ void MainWindow::on_select_files_clicked() // BGR转灰度
     return;
   // Mat gray;
   grayImg.create( srcImg.rows, srcImg.cols, CV_8UC1 );
-  QImage Qtemp;
 
   for ( int i = 0; i < srcImg.rows; i++ )
     for ( int j = 0; j < srcImg.cols; j++ ) {
@@ -536,8 +535,6 @@ void MainWindow::on_grad_sharpen_clicked()
   Mat grad;
   Mat gray2Img;
   gray2Img.create( srcImg.rows, srcImg.cols, CV_8UC1 );
-  QImage Qtemp;
-  QImage Qtemp2;
   grad.create( gray2Img.rows, gray2Img.cols, CV_8UC1 );
   for ( int i = 0; i < gray2Img.rows - 1; i++ )
     for ( int j = 0; j < gray2Img.cols - 1; j++ ) {
@@ -555,10 +552,11 @@ void MainWindow::on_grad_sharpen_clicked()
 
 void MainWindow::on_laplace_sharpen_clicked()
 {
+  if ( srcNotInit() )
+    return;
+
   Mat gradimg;
   Mat gray2Img;
-  QImage Qtemp;
-  QImage Qtemp2;
   gray2Img.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   gradimg.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   for ( int i = 1; i < srcImg.rows - 1; i++ ) {
@@ -575,15 +573,16 @@ void MainWindow::on_laplace_sharpen_clicked()
   }
 
   showAtLabel( gray2Img, nextLabel( currentSelected ) );
-  showAtLabel( gradimg, nextLabel( currentSelected ) );
+  showAtLabel( gradimg, nextLabel( nextLabel( currentSelected ) ) );
 }
 
 void MainWindow::on_roberts_edge_clicked()
 {
+  if ( srcNotInit() )
+    return;
+
   Mat gradimg;
   Mat gray2Img;
-  QImage Qtemp;
-  QImage Qtemp2;
   gray2Img.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   gradimg.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   for ( int i = 0; i < srcImg.rows - 1; i++ ) {
@@ -602,12 +601,13 @@ void MainWindow::on_roberts_edge_clicked()
 
 void MainWindow::on_sobel_edge_clicked()
 {
+  if ( srcNotInit() )
+    return;
+
   Mat gradimg;
   Mat gray2Img;
   Mat f_x;
   Mat f_y;
-  QImage Qtemp;
-  QImage Qtemp2;
   gray2Img.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   gradimg.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   f_x.create( grayImg.rows, grayImg.cols, CV_8UC1 );
@@ -634,12 +634,13 @@ void MainWindow::on_sobel_edge_clicked()
 
 void MainWindow::on_prewitt_clicked()
 {
+  if ( srcNotInit() )
+    return;
+
   Mat gradimg;
   Mat gray2Img;
   Mat f_x;
   Mat f_y;
-  QImage Qtemp;
-  QImage Qtemp2;
   gray2Img.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   gradimg.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   f_x.create( grayImg.rows, grayImg.cols, CV_8UC1 );
@@ -666,10 +667,11 @@ void MainWindow::on_prewitt_clicked()
 
 void MainWindow::on_laplace_edge_clicked()
 {
+  if ( srcNotInit() )
+    return;
+
   Mat gradimg;
   Mat gray2Img;
-  QImage Qtemp;
-  QImage Qtemp2;
   gray2Img.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   gradimg.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   for ( int i = 1; i < srcImg.rows - 1; i++ ) {
@@ -691,11 +693,13 @@ void MainWindow::on_laplace_edge_clicked()
 
 void MainWindow::on_salt_noise_clicked()
 {
+  if ( srcNotInit() )
+    return;
+
   Mat salt;
   Mat temp;
   salt.create( srcImg.rows, srcImg.cols, CV_8UC3 );
   salt = addSaltNoise( srcImg, 800 );
-  QImage Qtemp2;
   cvtColor( salt, temp, CV_BGR2RGB ); // BGR convert to RGB
 
   noiseImg = temp.clone();
@@ -706,11 +710,13 @@ void MainWindow::on_salt_noise_clicked()
 
 void MainWindow::on_guass_noise_clicked()
 {
+  if ( srcNotInit() )
+    return;
+
   Mat salt;
   Mat temp;
   salt.create( srcImg.rows, srcImg.cols, CV_8UC3 );
   salt = addGaussianNoise( srcImg );
-  QImage Qtemp2;
   cvtColor( salt, temp, CV_BGR2RGB ); // BGR convert to RGB
   noiseImg = temp.clone();
 
@@ -720,6 +726,9 @@ void MainWindow::on_guass_noise_clicked()
 
 void MainWindow::on_krisch_edge_clicked()
 {
+  if ( srcNotInit() )
+    return;
+
   Mat gradimg;
   Mat gray2Img;
   Mat f_1;
@@ -730,8 +739,6 @@ void MainWindow::on_krisch_edge_clicked()
   Mat f_6;
   Mat f_7;
   Mat f_8;
-  QImage Qtemp;
-  QImage Qtemp2;
   gray2Img.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   gradimg.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   f_1.create( grayImg.rows, grayImg.cols, CV_8UC1 );
@@ -811,14 +818,15 @@ void MainWindow::on_krisch_edge_clicked()
 
 void MainWindow::on_Canny_clicked()
 {
+  if ( srcNotInit() )
+    return;
+
   Mat gauss;
   Mat f_x;
   Mat f_y;
   Mat gradimg;
   Mat max_control;
   Mat gray2Img;
-  QImage Qtemp;
-  QImage Qtemp2;
   gauss.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   gradimg.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   gray2Img.create( grayImg.rows, grayImg.cols, CV_8UC1 );
@@ -948,8 +956,6 @@ void MainWindow::on_average_filter_clicked()
     return;
 
   Mat filterImg;
-  QImage Qtemp;
-  QImage Qtemp2;
 
   filterImg = noiseImg.clone();
 
@@ -975,8 +981,6 @@ void MainWindow::on_middle_filter_clicked()
     return;
 
   Mat filterImg;
-  QImage Qtemp;
-  QImage Qtemp2;
   QVector<double> middle( 9, 0 );
 
   filterImg = noiseImg.clone();
@@ -1009,8 +1013,6 @@ void MainWindow::on_window_filter_clicked()
     return;
 
   Mat filterImg;
-  QImage Qtemp;
-  QImage Qtemp2;
   QVector<double> window( 8, 0 );
   QVector<double> minImg( 8, 0 );
 
@@ -1066,8 +1068,6 @@ void MainWindow::on_gauss_filter_clicked()
     return;
 
   Mat filterImg;
-  QImage Qtemp;
-  QImage Qtemp2;
 
   filterImg = noiseImg.clone();
 
@@ -1095,8 +1095,6 @@ void MainWindow::on_form_filter_clicked()
   Mat filterImg;
   Mat temp;
   Mat RGB;
-  QImage Qtemp;
-  QImage Qtemp2;
 
   Mat element = getStructuringElement( cv::MORPH_RECT, Size( 15, 15 ) );
   cvtColor( srcImg, RGB, CV_BGR2RGB );
@@ -1108,8 +1106,9 @@ void MainWindow::on_form_filter_clicked()
 
 void MainWindow::on_affine_clicked()
 {
-  QImage Qtemp;
-  QImage Qtemp2;
+  if ( srcNotInit() )
+    return;
+
   Point2f srcTri[3];
   Point2f dstTri[3];
   Mat rot_mat( 2, 3, CV_32FC1 );
@@ -1137,8 +1136,9 @@ void MainWindow::on_affine_clicked()
 
 void MainWindow::on_perspective_clicked()
 {
-  QImage Qtemp;
-  QImage Qtemp2;
+  if ( srcNotInit() )
+    return;
+
   Point2f srcQuad[4];
   Point2f dstQuad[4];
   Mat warp_matrix( 3, 3, CV_32FC1 );
@@ -1165,7 +1165,9 @@ void MainWindow::on_perspective_clicked()
 
 void MainWindow::on_threshold_seg_clicked()
 {
-  QImage Qtemp;
+  if ( srcNotInit() )
+    return;
+
   Mat targetImg;
   targetImg.create( grayImg.rows, grayImg.cols, CV_8UC1 );
 
@@ -1183,6 +1185,9 @@ void MainWindow::on_threshold_seg_clicked()
 
 void MainWindow::on_OSTU_clicked()
 {
+  if ( srcNotInit() )
+    return;
+
   QVector<int> hist( 256, 0 );
 
   for ( int i = 0; i < grayImg.rows; i++ )
@@ -1193,7 +1198,6 @@ void MainWindow::on_OSTU_clicked()
   T = OSTU( hist );
   // cout << "OSTU:" << T << std::endl;
 
-  QImage Qtemp;
   Mat targetImg;
   targetImg.create( grayImg.rows, grayImg.cols, CV_8UC1 );
 
@@ -1211,7 +1215,9 @@ void MainWindow::on_OSTU_clicked()
 
 void MainWindow::on_Kittler_clicked()
 {
-  QImage Qtemp;
+  if ( srcNotInit() )
+    return;
+
   Mat targetImg;
   Mat temp;
   temp = grayImg.clone();
@@ -1383,11 +1389,6 @@ void MainWindow::on_mix_guass_clicked()
 
 void MainWindow::on_circle_lbp_clicked()
 {
-  QImage Qtemp0;
-  QImage Qtemp;
-  QImage Qtemp1;
-  QImage Qtemp2;
-
   // Mat Img = imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
   //                   "Pro1_open_image/open_image/lena.jpg" );
   auto file = openFile();
@@ -1441,9 +1442,6 @@ void MainWindow::on_circle_lbp_clicked()
 
 void MainWindow::on_target_det_clicked()
 {
-  QImage Qtemp;
-  QImage Qtemp1;
-
   // Mat temp0 = imread( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
   //                     "Pro1_open_image/open_image/lena.jpg" );
   auto file = openFile();
@@ -1519,8 +1517,6 @@ void MainWindow::on_target_det_clicked()
 
 void MainWindow::on_model_check_clicked()
 {
-  QImage Qtemp;
-  QImage Qtemp1;
   double minVal;
   double maxVal;
   Point minLoc;
@@ -1933,19 +1929,19 @@ Mat bgr_color;
 Mat hsv_color;
 // 色度
 int hsv_hmin = 0;
-int hsv_hmin_Max = 360;
+constexpr int hsv_hmin_Max = 360;
 int hsv_hmax = 360;
-int hsv_hmax_Max = 360;
+constexpr int hsv_hmax_Max = 360;
 // 饱和度
 int hsv_smin = 0;
-int hsv_smin_Max = 255;
+constexpr int hsv_smin_Max = 255;
 int hsv_smax = 255;
-int hsv_smax_Max = 255;
+constexpr int hsv_smax_Max = 255;
 // 亮度
 int hsv_vmin = 106;
-int hsv_vmin_Max = 255;
+constexpr int hsv_vmin_Max = 255;
 int hsv_vmax = 250;
-int hsv_vmax_Max = 255;
+constexpr int hsv_vmax_Max = 255;
 // 显示原图的窗口
 string windowName = "src";
 // 输出图像的显示窗口
@@ -1973,7 +1969,7 @@ static inline void callBack( int /**/, void* /**/ )
   }
   // 输出图像
   imshow( dstName, dst_color );
-  // imshow("mast", mask);
+  imshow("mast", mask);
   // 保存图像
   // dst_color.convertTo(dst_color, CV_8UC3, 255.0, 0);
   // imwrite("F://program//image//HSV_inRange.jpg", dst_color)
