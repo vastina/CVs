@@ -72,6 +72,7 @@ MainWindow::MainWindow( QWidget* parent ) : QMainWindow( parent ), ui( new Ui::M
   connect( ui->face_haar, &QPushButton::clicked, this, &MainWindow::on_face_haar_clicked );
   connect( ui->camera2, &QPushButton::clicked, this, &MainWindow::on_camera2_clicked );
   connect( ui->camera2_2, &QPushButton::clicked, this, &MainWindow::on_camera2_2_clicked );
+  connect( ui->video_track, &QPushButton::clicked, this, &MainWindow::on_video_track_clicked );
 }
 
 MainWindow::~MainWindow()
@@ -2916,4 +2917,198 @@ void MainWindow::on_camera2_2_clicked()
 
   cv::destroyAllWindows();
   waitKey( 1 );
+}
+
+#include "ui_videoTrack.h"
+
+class TrackWindow : public QMainWindow
+{
+public:
+  Ui::videoTrakWindow* ui;
+  explicit TrackWindow( QWidget* parent = nullptr )
+    : QMainWindow( parent ), ui( new Ui::videoTrakWindow )
+  {
+    ui->setupUi( this );
+  }
+  ~TrackWindow() { delete ui; }
+};
+
+void MainWindow::on_video_track_clicked()
+{
+  constexpr int WIDTH = 640;
+  constexpr int HEIGHT = 480;
+  constexpr int MAX_OBJECTS = 20;
+  constexpr int MIN_OBJECT_AREA = 25 * 25;
+  constexpr int MAX_OBJECT_AREA = HEIGHT * WIDTH / 2;
+  constexpr std::string_view imageWindow = "Original Image";
+  constexpr std::string_view hsvWindow = "HSV Image";
+  constexpr std::string_view thresholdWindow = "Thresholded Image";
+
+  namedWindow( imageWindow.data() );
+  namedWindow( hsvWindow.data() );
+  namedWindow( thresholdWindow.data() );
+  cv::moveWindow( imageWindow.data(), 100, 0 );
+  cv::moveWindow( hsvWindow.data(), 1000, 0 );
+  cv::moveWindow( thresholdWindow.data(), 1000, 500 );
+
+  auto* trackUi = new TrackWindow( this );
+
+  cv::VideoCapture capture {};
+  const auto file = openFile( "*.mp4" );
+  if ( file.empty() )
+    return;
+  capture.open( file );
+  // set height and width of capture frame
+  capture.set( cv::CAP_PROP_FRAME_WIDTH, WIDTH );
+  capture.set( cv::CAP_PROP_FRAME_HEIGHT, HEIGHT );
+
+  Mat cameraFeed_Mat;
+  Mat HSV_Mat;
+
+  struct item
+  {
+    std::string name { "default" };
+    int x {};
+    int y {};
+    int H_MIN {};
+    int H_MAX {};
+    int S_MIN {};
+    int S_MAX {};
+    int V_MIN {};
+    int V_MAX {};
+    Mat threshold;
+  } testObject;
+  vector<item> objects;
+
+  int H_MIN {};
+  int H_MAX {};
+  int S_MIN {};
+  int S_MAX {};
+  int V_MIN {};
+  int V_MAX {};
+  int track_x = 0;
+  int track_y = 0;
+  double area;
+  double sideLength;
+
+  const auto morphObject { []( Mat& thresh ) {
+    // create structuring element that will be used to "dilate" and "erode" image.
+    // the element chosen here is a 3px by 3px rectangle
+    Mat erodeElement = getStructuringElement( cv::MORPH_RECT, Size( 3, 3 ) );
+    // dilate with larger element so make sure object is nicely visible
+    Mat dilateElement = getStructuringElement( cv::MORPH_RECT, Size( 8, 8 ) );
+
+    erode( thresh, thresh, erodeElement );
+    erode( thresh, thresh, erodeElement );
+    dilate( thresh, thresh, dilateElement );
+    dilate( thresh, thresh, dilateElement );
+  } };
+  const auto drawObject { [&]( int x, int y, Mat& frame, const item& tempItem ) {
+    rectangle( frame,
+               Point( x - ( sideLength / 2 ), y - ( sideLength / 2 ) ),
+               Point( x + ( sideLength / 2 ), y + ( sideLength / 2 ) ),
+               Scalar( 0, 255, 0 ),
+               2 );
+
+    putText( frame,
+             std::to_string( x ) + "," + std::to_string( y ),
+             Point( x, y + 30 ),
+             1,
+             1,
+             Scalar( 0, 72, 255 ),
+             1 );
+    putText( frame, tempItem.name, Point( x, y + 50 ), 2, 1, Scalar( 0, 72, 255 ), 1 );
+  } };
+  const auto trackObject { [&]( int& x, int& y, const item& tempItem, Mat& cameraFeed ) {
+    Mat temp;
+    tempItem.threshold.copyTo( temp );
+    // these two vectors needed for output of findContours
+    vector<vector<Point>> contours;
+    vector<cv::Vec4i> hierarchy;
+    // find contours of filtered image using openCV findContours function
+    findContours( temp, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE );
+    // use moments method to find our filtered object
+    double refArea = 0;
+    bool objectFound = false;
+    if ( hierarchy.size() > 0 ) {
+      int numObjects = static_cast<int>( hierarchy.size() );
+      // if number of objects greater than MAX_OBJECTS we have a noisy filter
+      if ( numObjects < MAX_OBJECTS ) {
+        for ( int index = 0; index >= 0; index = hierarchy[index][0] ) {
+
+          cv::Moments moment = moments( (cv::Mat)contours[index] );
+          area = moment.m00;
+          sideLength = sqrt( area );
+
+          // if the area is less than 25 px by 25px then it is probably just noise
+          // if the area is the same as the 1/2 of the image size, probably just a bad filter
+          // we only want the object with the largest area so we safe a reference area each
+          // iteration and compare it to the area in the next iteration.
+          if ( area > MIN_OBJECT_AREA && area < MAX_OBJECT_AREA && area > refArea ) {
+            x = moment.m10 / area;
+            y = moment.m01 / area;
+            objectFound = true;
+            refArea = area;
+          } else
+            objectFound = false;
+        }
+        // let user know you found an object
+        if ( objectFound == true ) {
+          // draw object location on screen
+          drawObject( x, y, cameraFeed, tempItem );
+        }
+      }
+    }
+  } };
+
+  connect( trackUi->ui->addButton, &QPushButton::clicked, [&]() {
+    objects.push_back( item(
+      trackUi->ui->nameLineEdit->text().toStdString(), H_MIN, H_MAX, S_MIN, S_MAX, V_MIN, V_MAX ) );
+    trackUi->ui->nameLineEdit->clear();
+  } );
+  connect( trackUi->ui->defaultButton, &QPushButton::clicked, [&]() {
+    trackUi->ui->hminBox->setValue( 0 );
+    trackUi->ui->hmaxBox->setValue( 255 );
+    trackUi->ui->sminBox->setValue( 0 );
+    trackUi->ui->smaxBox->setValue( 255 );
+    trackUi->ui->vminBox->setValue( 0 );
+    trackUi->ui->vmaxBox->setValue( 255 );
+  } );
+  trackUi->show();
+  this->setVisible( false );
+
+  bool running = true;
+  while ( capture.read( cameraFeed_Mat ) && running ) {
+    H_MIN = trackUi->ui->hminBox->text().toInt();
+    H_MAX = trackUi->ui->hmaxBox->text().toInt();
+    S_MIN = trackUi->ui->sminBox->text().toInt();
+    S_MAX = trackUi->ui->smaxBox->text().toInt();
+    V_MIN = trackUi->ui->vminBox->text().toInt();
+    V_MAX = trackUi->ui->vmaxBox->text().toInt();
+
+    cvtColor( cameraFeed_Mat, HSV_Mat, cv::COLOR_BGR2HSV );
+    inRange(
+      HSV_Mat, Scalar( H_MIN, S_MIN, V_MIN ), Scalar( H_MAX, S_MAX, V_MAX ), testObject.threshold );
+    morphObject( testObject.threshold );
+    trackObject( track_x, track_y, testObject, cameraFeed_Mat );
+    for ( unsigned int i = 0; i < objects.size(); i++ ) {
+
+      inRange( HSV_Mat,
+               Scalar( objects[i].H_MIN, objects[i].S_MIN, objects[i].V_MIN ),
+               Scalar( objects[i].H_MAX, objects[i].S_MAX, objects[i].V_MAX ),
+               objects[i].threshold );
+      morphObject( objects[i].threshold );
+      trackObject( track_x, track_y, objects[i], cameraFeed_Mat );
+    }
+    imshow( imageWindow.data(), cameraFeed_Mat );
+    imshow( hsvWindow.data(), HSV_Mat );
+    imshow( thresholdWindow.data(), testObject.threshold );
+
+    if ( cv::waitKey( 30 ) >= 0 )
+      running = false;
+  }
+
+  cv::destroyAllWindows();
+  delete trackUi;
+  this->setVisible( true );
 }
