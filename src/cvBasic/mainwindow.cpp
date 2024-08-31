@@ -862,7 +862,7 @@ void MainWindow::on_Canny_clicked()
   gray2Img.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   f_x.create( grayImg.rows, grayImg.cols, CV_8UC1 );
   f_y.create( grayImg.rows, grayImg.cols, CV_8UC1 );
-  QVector<double> direction( ( grayImg.rows - 1 ) * ( grayImg.cols - 1 ), 0 );
+  QVector<double> direction( ( grayImg.rows ) * ( grayImg.cols ), 0 );
   // 高斯处理
   for ( int i = 1; i < grayImg.rows - 1; i++ ) {
     for ( int j = 1; j < grayImg.cols - 1; j++ ) {
@@ -910,8 +910,8 @@ void MainWindow::on_Canny_clicked()
   //    // cout<<"m"<< m <<"    "<< "s" << s << std::endl;
   max_control = gradimg.clone();
   k = 0;
-  for ( int i = 1; i < gradimg.rows - 2; i++ ) {
-    for ( int j = 1; j < gradimg.cols - 2; j++ ) {
+  for ( int i = 1; i < gradimg.rows - 1; i++ ) {
+    for ( int j = 1; j < gradimg.cols - 1; j++ ) {
       int value00 = gradimg.at<uchar>( ( i - 1 ), j - 1 );
       int value01 = gradimg.at<uchar>( ( i - 1 ), j );
       int value02 = gradimg.at<uchar>( ( i - 1 ), j + 1 );
@@ -924,10 +924,10 @@ void MainWindow::on_Canny_clicked()
 
       if ( direction[k] > 0 && direction[k] <= 45 ) {
         if ( value11
-               <= ( value12 + ( value02 - value12 ) * tan( direction[i * max_control.rows + j] ) )
+               <= ( value12 + ( value02 - value12 ) * tan( direction[i * max_control.cols + j] ) )
              || ( value11
                   <= ( value10
-                       + ( value20 - value10 ) * tan( direction[i * max_control.rows + j] ) ) ) ) {
+                       + ( value20 - value10 ) * tan( direction[i * max_control.cols + j] ) ) ) ) {
           max_control.at<uchar>( i, j ) = 0;
         }
       }
