@@ -80,6 +80,8 @@ public:
   QPushButton* camera2_2;
   QGroupBox* groupBox_10;
   QPushButton* video_track;
+  QGroupBox* groupBox_9;
+  QPushButton* blur;
   QMenuBar* menubar;
   QStatusBar* statusbar;
 
@@ -87,7 +89,7 @@ public:
   {
     if ( MainWindow->objectName().isEmpty() )
       MainWindow->setObjectName( "MainWindow" );
-    MainWindow->resize( 1037, 685 );
+    MainWindow->resize( 1189, 685 );
     centralwidget = new QWidget( MainWindow );
     centralwidget->setObjectName( "centralwidget" );
     label = new QLabel( centralwidget );
@@ -255,6 +257,12 @@ public:
     video_track = new QPushButton( groupBox_10 );
     video_track->setObjectName( "video_track" );
     video_track->setGeometry( QRect( 0, 60, 113, 32 ) );
+    groupBox_9 = new QGroupBox( centralwidget );
+    groupBox_9->setObjectName( "groupBox_9" );
+    groupBox_9->setGeometry( QRect( 970, 10, 111, 101 ) );
+    blur = new QPushButton( groupBox_9 );
+    blur->setObjectName( "blur" );
+    blur->setGeometry( QRect( 0, 20, 113, 32 ) );
     MainWindow->setCentralWidget( centralwidget );
     groupBox_10->raise();
     groupBox_8->raise();
@@ -310,9 +318,10 @@ public:
     face_haar->raise();
     camera2->raise();
     camera2_2->raise();
+    groupBox_9->raise();
     menubar = new QMenuBar( MainWindow );
     menubar->setObjectName( "menubar" );
-    menubar->setGeometry( QRect( 0, 0, 1037, 33 ) );
+    menubar->setGeometry( QRect( 0, 0, 1189, 33 ) );
     MainWindow->setMenuBar( menubar );
     statusbar = new QStatusBar( MainWindow );
     statusbar->setObjectName( "statusbar" );
@@ -426,6 +435,8 @@ public:
     groupBox_10->setTitle( QCoreApplication::translate(
       "MainWindow", "\346\221\204\345\203\217\346\240\207\345\256\232", nullptr ) );
     video_track->setText( QCoreApplication::translate( "MainWindow", "video track", nullptr ) );
+    groupBox_9->setTitle( QCoreApplication::translate( "MainWindow", "testing", nullptr ) );
+    blur->setText( QCoreApplication::translate( "MainWindow", "blur", nullptr ) );
   } // retranslateUi
 };
 

@@ -173,4 +173,6 @@ private slots:
   void on_camera2_2_clicked();
 
   void on_video_track_clicked();
+
+  void on_blur_clicked();
 };

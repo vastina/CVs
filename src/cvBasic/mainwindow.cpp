@@ -72,6 +72,7 @@ MainWindow::MainWindow( QWidget* parent ) : QMainWindow( parent ), ui( new Ui::M
   connect( ui->face_haar, &QPushButton::clicked, this, &MainWindow::on_face_haar_clicked );
   connect( ui->camera2, &QPushButton::clicked, this, &MainWindow::on_camera2_clicked );
   connect( ui->camera2_2, &QPushButton::clicked, this, &MainWindow::on_camera2_2_clicked );
+  connect( ui->blur, &QPushButton::clicked, this, &MainWindow::on_blur_clicked );
   connect( ui->video_track, &QPushButton::clicked, this, &MainWindow::on_video_track_clicked );
 }
 
@@ -449,6 +450,34 @@ void MainWindow::on_pushButton_clicked() // 选择文件
   Mat temp;
   cvtColor( srcImg, temp, CV_BGR2RGB ); // BGR convert to RGB
   showAtLabel( temp, currentSelected, QImage::Format_RGB888 );
+}
+
+constexpr const char* blur_windowName = "blur";
+Mat blur_origin;
+Mat blur_output;
+int blur_Size_Width = 1;
+int blur_Size_Height = 1;
+void MainWindow::on_blur_clicked()
+{
+  if ( srcNotInit() )
+    return;
+
+  blur_origin = srcImg;
+
+  namedWindow( blur_windowName, cv::WINDOW_GUI_EXPANDED );
+  createTrackbar( "w", blur_windowName, &blur_Size_Width, 100, []( int /**/, void* /**/ ) {
+    blur_Size_Width = std::max( blur_Size_Width, 1 );
+    cv::blur( blur_origin, blur_output, Size( blur_Size_Width, blur_Size_Height ) );
+    imshow( blur_windowName, blur_output );
+  } );
+  createTrackbar( "h", blur_windowName, &blur_Size_Height, 100, []( int /**/, void* /**/ ) {
+    blur_Size_Height = std::max( blur_Size_Height, 1 );
+    cv::blur( blur_origin, blur_output, Size( blur_Size_Width, blur_Size_Height ) );
+    imshow( blur_windowName, blur_output );
+  } );
+
+  waitKey( 0 );
+  cv::destroyAllWindows();
 }
 
 void MainWindow::on_select_files_clicked() // BGR转灰度
@@ -1290,7 +1319,7 @@ void MainWindow::on_frame_diff_clicked()
     // nFrmNum++;
 
     pCapture >> pFrame1;
-    if ( pFrame1.data == NULL )
+    if ( pFrame1.data == nullptr )
       return;
     pCapture >> pFrame2;
     pCapture >> pFrame3;
@@ -1368,7 +1397,7 @@ void MainWindow::on_mix_guass_clicked()
 
   while ( 1 ) {
     pCapture >> pframe;
-    if ( pframe.data == NULL )
+    if ( pframe.data == nullptr )
       return;
     cvtColor( pframe, greyimg, CV_BGR2GRAY );
     // long long t = cv::getTickCount();
@@ -1970,7 +1999,7 @@ static inline void callBack( int /**/, void* /**/ )
   }
   // 输出图像
   imshow( dstName, dst_color );
-  imshow("mast", mask);
+  imshow( "mast", mask );
   // 保存图像
   // dst_color.convertTo(dst_color, CV_8UC3, 255.0, 0);
   // imwrite("F://program//image//HSV_inRange.jpg", dst_color)
