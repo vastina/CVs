@@ -33,6 +33,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 set(OpenCV_ROOT "${env}/o/opencv/4.10.0/localBuild-debug")
 else() # need to delete cache
 set(OpenCV_ROOT "${env}/o/opencv/4.10.0/localBuild")
+set(OpenCV_STATIC ON)
 endif()
 # set(OpenCV_DIR "${OpenCV_ROOT}/x64/vc17/staticlib") # OpenCVConfig.cmake dir
 find_package(OpenCV REQUIRED)
@@ -50,9 +51,14 @@ function(setup_project dir_name)
   endif()
   add_executable(${_outname} ${SOURCES_${dir_name}})
   if(WIN32)
-    set_property(TARGET ${_outname} PROPERTY CXX_STANDARD 20
-                                             CXX_STANDARD_REQUIRED YES)
-    set_target_properties(${_outname} PROPERTIES COMPILE_FLAGS "${COMPILE_FLAGS} /utf-8")
+    set_target_properties(${_outname} PROPERTIES
+      CXX_STANDARD 20
+      CXX_STANDARD_REQUIRED YES
+      COMPILE_FLAGS "${COMPILE_FLAGS} /utf-8"
+    )
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
+      set_target_properties(${_outname} PROPERTIES COMPILE_FLAGS "${COMPILE_FLAGS} /MT")
+    endif()
     # set_target_properties(
     #   ${_outname}
     #   PROPERTIES WIN32_EXECUTABLE TRUE
