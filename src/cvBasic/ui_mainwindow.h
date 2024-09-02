@@ -82,6 +82,10 @@ public:
   QPushButton* video_track;
   QGroupBox* groupBox_9;
   QPushButton* blur;
+  QPushButton* saveButton_1;
+  QPushButton* saveButton_2;
+  QPushButton* saveButton_3;
+  QPushButton* saveButton_4;
   QMenuBar* menubar;
   QStatusBar* statusbar;
 
@@ -118,10 +122,10 @@ public:
     laplace_sharpen->setGeometry( QRect( 560, 180, 111, 32 ) );
     label_2 = new QLabel( centralwidget );
     label_2->setObjectName( "label_2" );
-    label_2->setGeometry( QRect( 30, 270, 251, 251 ) );
+    label_2->setGeometry( QRect( 30, 310, 251, 251 ) );
     label_3 = new QLabel( centralwidget );
     label_3->setObjectName( "label_3" );
-    label_3->setGeometry( QRect( 290, 270, 251, 251 ) );
+    label_3->setGeometry( QRect( 290, 310, 251, 251 ) );
     roberts_edge = new QPushButton( centralwidget );
     roberts_edge->setObjectName( "roberts_edge" );
     roberts_edge->setGeometry( QRect( 560, 240, 113, 32 ) );
@@ -263,6 +267,18 @@ public:
     blur = new QPushButton( groupBox_9 );
     blur->setObjectName( "blur" );
     blur->setGeometry( QRect( 0, 20, 113, 32 ) );
+    saveButton_1 = new QPushButton( centralwidget );
+    saveButton_1->setObjectName( "saveButton_1" );
+    saveButton_1->setGeometry( QRect( 20, 270, 75, 23 ) );
+    saveButton_2 = new QPushButton( centralwidget );
+    saveButton_2->setObjectName( "saveButton_2" );
+    saveButton_2->setGeometry( QRect( 330, 270, 75, 23 ) );
+    saveButton_3 = new QPushButton( centralwidget );
+    saveButton_3->setObjectName( "saveButton_3" );
+    saveButton_3->setGeometry( QRect( 10, 570, 75, 23 ) );
+    saveButton_4 = new QPushButton( centralwidget );
+    saveButton_4->setObjectName( "saveButton_4" );
+    saveButton_4->setGeometry( QRect( 320, 570, 75, 23 ) );
     MainWindow->setCentralWidget( centralwidget );
     groupBox_10->raise();
     groupBox_8->raise();
@@ -319,6 +335,10 @@ public:
     camera2->raise();
     camera2_2->raise();
     groupBox_9->raise();
+    saveButton_1->raise();
+    saveButton_2->raise();
+    saveButton_3->raise();
+    saveButton_4->raise();
     menubar = new QMenuBar( MainWindow );
     menubar->setObjectName( "menubar" );
     menubar->setGeometry( QRect( 0, 0, 1189, 33 ) );
@@ -437,6 +457,10 @@ public:
     video_track->setText( QCoreApplication::translate( "MainWindow", "video track", nullptr ) );
     groupBox_9->setTitle( QCoreApplication::translate( "MainWindow", "testing", nullptr ) );
     blur->setText( QCoreApplication::translate( "MainWindow", "blur", nullptr ) );
+    saveButton_1->setText( QCoreApplication::translate( "MainWindow", "save", nullptr ) );
+    saveButton_2->setText( QCoreApplication::translate( "MainWindow", "save", nullptr ) );
+    saveButton_3->setText( QCoreApplication::translate( "MainWindow", "save", nullptr ) );
+    saveButton_4->setText( QCoreApplication::translate( "MainWindow", "save", nullptr ) );
   } // retranslateUi
 };
 

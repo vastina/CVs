@@ -80,6 +80,7 @@ private:
   }
   void showAtLabel( const cv::Mat&, label, QImage::Format = QImage::Format_Indexed8 );
   QLabel* labelToShow( label id );
+  void saveFile( label );
 
 public:
   MainWindow( QWidget* parent = nullptr );

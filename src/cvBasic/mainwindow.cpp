@@ -4,6 +4,8 @@
 #include <QMouseEvent>
 #include <opencv2/imgcodecs/legacy/constants_c.h>
 
+#include <ctime>
+
 using cv::createTrackbar;
 using cv::imread;
 using cv::Mat;
@@ -29,6 +31,12 @@ using std::vector;
 MainWindow::MainWindow( QWidget* parent ) : QMainWindow( parent ), ui( new Ui::MainWindow )
 {
   ui->setupUi( this );
+
+  connect( ui->saveButton_1, &QPushButton::clicked, [this] { saveFile( label::_1 ); } );
+  connect( ui->saveButton_2, &QPushButton::clicked, [this] { saveFile( label::_2 ); } );
+  connect( ui->saveButton_3, &QPushButton::clicked, [this] { saveFile( label::_3 ); } );
+  connect( ui->saveButton_4, &QPushButton::clicked, [this] { saveFile( label::_4 ); } );
+
   connect( ui->pushButton, &QPushButton::clicked, this, &MainWindow::on_pushButton_clicked );
   connect( ui->select_files, &QPushButton::clicked, this, &MainWindow::on_select_files_clicked );
   connect( ui->gray_leval, &QPushButton::clicked, this, &MainWindow::on_gray_leval_clicked );
@@ -122,6 +130,38 @@ string MainWindow::openFile( const char* filterDesc = "Images (*.png *.bmp *.jpg
     return filePaths.at( 0 ).toStdString();
   }
   return {};
+}
+
+static inline string formatRFC7231()
+{
+  std::time_t time = std::time( nullptr );
+  std::tm tm {};
+  ::gmtime_s( &tm, &time ); // 获取UTC时间
+  // tm = *std::gmtime( &time ); deprecation
+  tm.tm_hour += 8; // 东八区
+  std::ostringstream oss;
+  oss << std::put_time( &tm, "%a-%d-%b-%Y-%H-%M-%S" );
+  return oss.str();
+}
+
+void MainWindow::saveFile( label id )
+{
+  static string lastLoc = "C:/";
+  string saveLoc
+    = QFileDialog::getSaveFileName( this, "Save File", (lastLoc + "_").data(), "(*)" ).toStdString();
+  if ( saveLoc.empty() )
+    return;
+  auto pic = labelToShow( id )->pixmap();
+  if ( pic.isNull() )
+    return;
+  if ( pic.save( ( saveLoc + formatRFC7231() + ".png" ).data(), "PNG" ) ) {
+    std::size_t lastPos;
+    for ( lastPos = saveLoc.size() - 1; lastPos != 0; lastPos-- ) {
+      if ( saveLoc[lastPos] == '/' )
+        break;
+    }
+    lastLoc = saveLoc.substr( 0, lastPos + 1 );
+  }
 }
 
 static inline Mat gray_to_level( Mat gray ) // 灰度直方图函数

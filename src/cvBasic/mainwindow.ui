@@ -122,7 +122,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>270</y>
+      <y>310</y>
       <width>251</width>
       <height>251</height>
      </rect>
@@ -135,7 +135,7 @@
     <property name="geometry">
      <rect>
       <x>290</x>
-      <y>270</y>
+      <y>310</y>
       <width>251</width>
       <height>251</height>
      </rect>
@@ -755,6 +755,58 @@
      </property>
     </widget>
    </widget>
+   <widget class="QPushButton" name="saveButton_1">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>270</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>save</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="saveButton_2">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>270</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>save</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="saveButton_3">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>570</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>save</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="saveButton_4">
+    <property name="geometry">
+     <rect>
+      <x>320</x>
+      <y>570</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>save</string>
+    </property>
+   </widget>
    <zorder>groupBox_10</zorder>
    <zorder>groupBox_8</zorder>
    <zorder>groupBox_7</zorder>
@@ -810,6 +862,10 @@
    <zorder>camera2</zorder>
    <zorder>camera2_2</zorder>
    <zorder>groupBox_9</zorder>
+   <zorder>saveButton_1</zorder>
+   <zorder>saveButton_2</zorder>
+   <zorder>saveButton_3</zorder>
+   <zorder>saveButton_4</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
