@@ -35,7 +35,6 @@ public:
   QPushButton* laplace_sharpen;
   QLabel* label_2;
   QLabel* label_3;
-  QPushButton* roberts_edge;
   QPushButton* sobel_edge;
   QPushButton* laplace_edge;
   QPushButton* prewitt;
@@ -70,6 +69,8 @@ public:
   QPushButton* face_haar;
   QGroupBox* groupBox;
   QGroupBox* groupBox_2;
+  QPushButton* findContours;
+  QPushButton* roberts_edge;
   QGroupBox* groupBox_3;
   QGroupBox* groupBox_4;
   QGroupBox* groupBox_5;
@@ -126,9 +127,6 @@ public:
     label_3 = new QLabel( centralwidget );
     label_3->setObjectName( "label_3" );
     label_3->setGeometry( QRect( 290, 310, 251, 251 ) );
-    roberts_edge = new QPushButton( centralwidget );
-    roberts_edge->setObjectName( "roberts_edge" );
-    roberts_edge->setGeometry( QRect( 560, 240, 113, 32 ) );
     sobel_edge = new QPushButton( centralwidget );
     sobel_edge->setObjectName( "sobel_edge" );
     sobel_edge->setGeometry( QRect( 560, 270, 113, 32 ) );
@@ -230,7 +228,13 @@ public:
     groupBox->setGeometry( QRect( 560, 10, 111, 201 ) );
     groupBox_2 = new QGroupBox( centralwidget );
     groupBox_2->setObjectName( "groupBox_2" );
-    groupBox_2->setGeometry( QRect( 560, 220, 111, 201 ) );
+    groupBox_2->setGeometry( QRect( 560, 220, 111, 231 ) );
+    findContours = new QPushButton( groupBox_2 );
+    findContours->setObjectName( "findContours" );
+    findContours->setGeometry( QRect( 0, 200, 113, 32 ) );
+    roberts_edge = new QPushButton( groupBox_2 );
+    roberts_edge->setObjectName( "roberts_edge" );
+    roberts_edge->setGeometry( QRect( 0, 20, 113, 32 ) );
     groupBox_3 = new QGroupBox( centralwidget );
     groupBox_3->setObjectName( "groupBox_3" );
     groupBox_3->setGeometry( QRect( 560, 450, 111, 101 ) );
@@ -300,7 +304,6 @@ public:
     laplace_sharpen->raise();
     label_2->raise();
     label_3->raise();
-    roberts_edge->raise();
     sobel_edge->raise();
     laplace_edge->raise();
     prewitt->raise();
@@ -376,7 +379,6 @@ public:
       "MainWindow", "                            \345\233\276\345\203\2173", nullptr ) );
     label_3->setText( QCoreApplication::translate(
       "MainWindow", "                              \345\233\276\345\203\2174", nullptr ) );
-    roberts_edge->setText( QCoreApplication::translate( "MainWindow", "Roberts", nullptr ) );
     sobel_edge->setText( QCoreApplication::translate( "MainWindow", "Sobel", nullptr ) );
     laplace_edge->setText( QCoreApplication::translate( "MainWindow", "Laplace", nullptr ) );
     prewitt->setText( QCoreApplication::translate( "MainWindow", "Prewitt", nullptr ) );
@@ -436,6 +438,8 @@ public:
       "MainWindow", "\345\233\276\345\203\217\351\242\204\345\244\204\347\220\206", nullptr ) );
     groupBox_2->setTitle( QCoreApplication::translate(
       "MainWindow", "\350\276\271\347\274\230\346\243\200\346\265\213", nullptr ) );
+    findContours->setText( QCoreApplication::translate( "MainWindow", "findContours", nullptr ) );
+    roberts_edge->setText( QCoreApplication::translate( "MainWindow", "Roberts", nullptr ) );
     groupBox_3->setTitle(
       QCoreApplication::translate( "MainWindow", "\345\231\252\345\243\260", nullptr ) );
     groupBox_4->setTitle(

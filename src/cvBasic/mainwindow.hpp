@@ -176,4 +176,6 @@ private slots:
   void on_video_track_clicked();
 
   void on_blur_clicked();
+
+  void on_findContours_clicked();
 };

@@ -144,19 +144,6 @@
      <string>                              图像4</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="roberts_edge">
-    <property name="geometry">
-     <rect>
-      <x>560</x>
-      <y>240</y>
-      <width>113</width>
-      <height>32</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Roberts</string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="sobel_edge">
     <property name="geometry">
      <rect>
@@ -592,12 +579,38 @@
       <x>560</x>
       <y>220</y>
       <width>111</width>
-      <height>201</height>
+      <height>231</height>
      </rect>
     </property>
     <property name="title">
      <string>边缘检测</string>
     </property>
+    <widget class="QPushButton" name="findContours">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>200</y>
+       <width>113</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>findContours</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="roberts_edge">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>20</y>
+       <width>113</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Roberts</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_3">
     <property name="geometry">
@@ -827,7 +840,6 @@
    <zorder>laplace_sharpen</zorder>
    <zorder>label_2</zorder>
    <zorder>label_3</zorder>
-   <zorder>roberts_edge</zorder>
    <zorder>sobel_edge</zorder>
    <zorder>laplace_edge</zorder>
    <zorder>prewitt</zorder>

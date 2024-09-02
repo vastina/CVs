@@ -82,6 +82,7 @@ MainWindow::MainWindow( QWidget* parent ) : QMainWindow( parent ), ui( new Ui::M
   connect( ui->camera2_2, &QPushButton::clicked, this, &MainWindow::on_camera2_2_clicked );
   connect( ui->blur, &QPushButton::clicked, this, &MainWindow::on_blur_clicked );
   connect( ui->video_track, &QPushButton::clicked, this, &MainWindow::on_video_track_clicked );
+  connect( ui->findContours, &QPushButton::clicked, this, &MainWindow::on_findContours_clicked );
 }
 
 MainWindow::~MainWindow()
@@ -518,6 +519,29 @@ void MainWindow::on_blur_clicked()
 
   waitKey( 0 );
   cv::destroyAllWindows();
+}
+
+void MainWindow::on_findContours_clicked()
+{
+  Mat src = srcImg.clone();
+  Mat dst = Mat::zeros( src.rows, src.cols, CV_8UC3 );
+  src = src > 119;
+  vector<vector<Point>> contours;
+  vector<cv::Vec4i> hierarchy;
+  Mat gray;
+  cvtColor( src, gray, cv::COLOR_BGR2GRAY );
+  findContours( gray, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE );
+  for ( int i = 0; i >= 0; i = hierarchy[i][0] ) {
+    drawContours( dst,
+                  contours,
+                  i,
+                  Scalar( rand() % 255, rand() % 255, rand() % 255 ),
+                  cv::FILLED,
+                  8,
+                  hierarchy );
+  }
+  showAtLabel( src, nextLabel( currentSelected ), QImage::Format_RGB888 );
+  showAtLabel( dst, nextLabel( nextLabel( currentSelected ) ), QImage::Format_RGB888 );
 }
 
 void MainWindow::on_select_files_clicked() // BGR转灰度

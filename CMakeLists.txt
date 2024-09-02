@@ -78,6 +78,7 @@ endfunction()
 setup_project(screenLog)
 setup_project(imageEdit)
 setup_project(cvBasic)
+setup_project(test_findContour)
 setup_project(test_detection)
 setup_project(test)
 
