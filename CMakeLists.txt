@@ -78,5 +78,7 @@ endfunction()
 setup_project(screenLog)
 setup_project(imageEdit)
 setup_project(cvBasic)
+setup_project(test_detection)
+setup_project(test)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
