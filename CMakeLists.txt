@@ -66,6 +66,7 @@ function(setup_project dir_name)
   endif()
   target_include_directories(
     ${_outname} PRIVATE
+    ${SOURCE_DIR}/public/include
     ${${dir_name}_INCLUDE}
     ${OpenCV_INCLUDE_DIRS}
   )
