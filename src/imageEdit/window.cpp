@@ -18,7 +18,13 @@ MainWindow::MainWindow( QWidget* parent )
   loadPlugins();
 }
 
-MainWindow::~MainWindow() {}
+MainWindow::~MainWindow()
+{
+  for ( auto& i : editPlugins ) {
+    delete i;
+  }
+  editPlugins.clear();
+}
 
 void MainWindow::initUI()
 {
@@ -49,7 +55,6 @@ void MainWindow::initUI()
 
 void MainWindow::createActions()
 {
-
   // create actions, add them to menus
   openAction = new QAction( "&Open", this );
   fileMenu->addAction( openAction );

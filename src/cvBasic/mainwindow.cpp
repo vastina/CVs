@@ -147,13 +147,14 @@ static inline string formatRFC7231()
 
 void MainWindow::saveFile( label id )
 {
-  static string lastLoc = "C:/";
-  string saveLoc
-    = QFileDialog::getSaveFileName( this, "Save File", (lastLoc + "_").data(), "(*)" ).toStdString();
-  if ( saveLoc.empty() )
-    return;
   auto pic = labelToShow( id )->pixmap();
   if ( pic.isNull() )
+    return;
+  static string lastLoc = "C:/";
+  string saveLoc
+    = QFileDialog::getSaveFileName( this, "Save File", ( lastLoc + "_" ).data(), "(*)" )
+        .toStdString();
+  if ( saveLoc.empty() )
     return;
   if ( pic.save( ( saveLoc + formatRFC7231() + ".png" ).data(), "PNG" ) ) {
     std::size_t lastPos;
@@ -1360,7 +1361,7 @@ void MainWindow::on_frame_diff_clicked()
   Mat pframe;
   // pCapture = cv::VideoCapture( "/Users/qitianyu/Master/Semester1/Image_processing/ProjectFiles/"
   //                              "Pro1_open_image/open_image/cat.avi" );
-  const auto file = openFile( "*.avi" );
+  const auto file = openFile( "*.avi *.mp4" );
   if ( file.empty() )
     return;
   pCapture = cv::VideoCapture( cv::String( file ) );
@@ -1512,7 +1513,7 @@ void MainWindow::on_circle_lbp_clicked()
   // namedWindow("image");
   // imshow("image", img);
 
-  showAtLabel( img, label::_2 );
+  showAtLabel( img, label::_2, QImage::Format_RGB888 );
 
   int radius;
   // int neighbors;
@@ -1531,7 +1532,7 @@ void MainWindow::on_circle_lbp_clicked()
   elbp( img, dst1, 1, 8 );
   // namedWindow("circle");
   // imshow("circle", dst1);
-  showAtLabel( dst, label::_4 );
+  showAtLabel( dst1, label::_4 );
 }
 
 void MainWindow::on_target_det_clicked()
