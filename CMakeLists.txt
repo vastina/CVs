@@ -66,6 +66,7 @@ function(setup_project dir_name)
   endif()
   target_include_directories(
     ${_outname} PRIVATE
+    ${${dir_name}_INCLUDE}
     ${OpenCV_INCLUDE_DIRS}
   )
   target_link_libraries(
